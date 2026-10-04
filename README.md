@@ -1,20 +1,33 @@
 # Financial Game Proof of Concept
 
-面向大学生的金融决策严肃游戏原型。当前仓库是 Unity 项目初始框架，尚未实现游戏玩法。
+面向大学生的金融决策严肃游戏原型。当前已实现 10 天可玩流程、每日事件选择、收支记账和账单安排；游戏界面为英文。
 
 ## 开发环境
 
 - Unity Editor：**6000.3.9f1**
-- 模板：**Universal 2D**（URP 2D Renderer）
+- 渲染：**Built-in Render Pipeline**，Canvas / TextMesh Pro 界面
+- 输入：Input System **1.18.0**
 - 语言：C#
-- 初始场景：`Assets/Scenes/SampleScene.unity`
+- 游戏场景：`Assets/Scenes/MainGame.unity`
 
 ## 打开项目
 
 1. 克隆本仓库，或将仓库下载为 ZIP 后完整解压。
 2. 在 Unity Hub 的 Projects 页面使用 Add / Add project from disk，选择本仓库根目录。
 3. 使用 Unity 6000.3.9f1 打开，等待首次依赖解析和资源导入完成。
-4. 打开 `Assets/Scenes/SampleScene.unity`。
+4. 打开 `Assets/Scenes/MainGame.unity`，点击 Play，自动随机开局。
+
+## 试玩与验证
+
+- 点击右下角 **Daily Journal**：第 1、3、5、7、9 天有三选一事件，选完后才能 End Day。
+- 点击左下角 **Ledger**：查看交易、未来账单、待到账款项和决策记录。
+- 开局资金随机为 $740 / $760 / $780；房租 $500，普通每日生活费 $30。有食物储备时仅扣其他生活费 $10。
+- 无法支付生活费或到期房租时结束，可用 **New Run** 重开。独立开始菜单尚未实现。
+- 在刚进入 Play 的第一天，运行 **Tools > Financial Game > Validate Event Choices**。验证覆盖三个开局下的 729 种计划选择组合：507 种通关，81 种交租失败，141 种生活费不足。这个比例不是实际玩家通关率。
+- 场景中的 UI 已保存并绑定；正常试玩不需要运行生成工具。
+- 当前 Build Profiles 尚未配置场景列表；导出前添加 `MainGame`。
+
+事件机制、依据与数值说明见 [EventDesign.md](Assets/Documentation/EventDesign.md)。
 
 选择的是同时包含 `Assets`、`Packages` 和 `ProjectSettings` 的文件夹，不是单独的 `Assets` 文件夹。
 
