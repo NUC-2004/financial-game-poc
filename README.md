@@ -29,6 +29,8 @@
 
 事件机制、依据与数值说明见 [EventDesign.md](Assets/Documentation/EventDesign.md)。
 
+供组员撰写 PoC 说明 PDF 的中文资料见 [原型创作过程与完整玩法说明](docs/原型创作过程与完整玩法说明.md)，包含创作过程、全部功能与事件、数值示例、测试、课堂反馈及下一步计划。
+
 选择的是同时包含 `Assets`、`Packages` 和 `ProjectSettings` 的文件夹，不是单独的 `Assets` 文件夹。
 
 ## 小组协作
