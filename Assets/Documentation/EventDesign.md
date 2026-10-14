@@ -1,5 +1,7 @@
 # Playable event slice
 
+> Historical ten-day prototype. Current gameplay and component settings are documented in [ThirtyDayPrototype.md](ThirtyDayPrototype.md). The numbers and absence of mood described below apply only to the earlier version.
+
 Five authored English scenarios on days 1, 3, 5, 7 and 9 of the ten-day prototype. Their dates are fixed for repeatable comparison; only the opening balance is random. No mood score, friendship penalty or hidden random financial reward is introduced.
 
 | Day | Event | Choices and effects | Intended practice |

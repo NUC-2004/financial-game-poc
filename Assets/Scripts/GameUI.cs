@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Text;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,6 +11,7 @@ public class GameUI : MonoBehaviour
     [Header("Systems")]
     [SerializeField] private GameManager game;
     [SerializeField] private EconomyManager economy;
+    [SerializeField] private RoomInterface room;
     [Tooltip("Test MainGame directly before the separate menu scene is ready.")]
     [SerializeField] private bool startRunOnPlay = true;
     [Header("Panels")]
@@ -20,6 +22,8 @@ public class GameUI : MonoBehaviour
     [SerializeField] private TMP_Text balanceText;
     [SerializeField] private TMP_Text foodText;
     [SerializeField] private TMP_Text statusText;
+    [SerializeField] private TMP_Text moodText;
+    [SerializeField] private Slider moodBar;
     [Header("Ledger")]
     [SerializeField] private TMP_Text agendaText;
     [SerializeField] private TMP_Text transactionsText;
@@ -57,6 +61,7 @@ public class GameUI : MonoBehaviour
     {
         if (game.HasStarted && !game.HasEnded) return;
         endingShown = false;
+        if (room != null) room.ClosePanels();
         ledgerPanel.SetActive(false);
         journalPanel.SetActive(false);
         game.StartRandomRun();
@@ -64,6 +69,7 @@ public class GameUI : MonoBehaviour
     public void OpenLedger()
     {
         if (!game.HasStarted) return;
+        if (room != null) room.ClosePanels();
         Refresh();
         journalPanel.SetActive(false);
         ledgerPanel.SetActive(true);
@@ -75,6 +81,7 @@ public class GameUI : MonoBehaviour
     public void OpenJournal()
     {
         if (!game.HasStarted) return;
+        if (room != null) room.ClosePanels();
         Refresh();
         ledgerPanel.SetActive(false);
         journalPanel.SetActive(true);
@@ -93,16 +100,20 @@ public class GameUI : MonoBehaviour
     private void Refresh()
     {
         if (!game.HasStarted) return;
-        dateText.text = $"DAY {game.DayNumber} / {game.TotalDays}\n{Date(game.CurrentDate)}";
-        balanceText.text = $"BALANCE\nAUD ${economy.Balance:N0}";
+        dateText.text = $"DAY {game.DayNumber}/{game.TotalDays}  |  {ShortDate(game.CurrentDate)}";
+        balanceText.text = $"AUD ${economy.Balance:N0}";
         foodText.text = $"FOOD SUPPLY\n{game.FoodDays} days";
-        statusText.text = game.HasEnded ? game.EndingMessage
-            : game.HasPendingChoice ? "A decision is waiting in your Daily Journal." : game.LastSettlement;
+        if (moodText != null) moodText.text = $"MOOD {game.Mood.Value}/100" + (game.Mood.IsLow ? "  LOW" : "");
+        if (moodBar != null) moodBar.value = game.Mood.Value;
+        if (moodText != null) moodText.color = game.Mood.IsLow ? new Color32(255, 185, 122, 255) : Color.white;
+        statusText.text = game.HasEnded ? (game.Completed ? "Month complete. Open the journal to review." : "Run ended. Open the journal to review.")
+            : game.HasPendingChoice ? "A new decision is waiting. Open your journal." : "Decision recorded. End the day from your journal.";
         RefreshLedger();
         RefreshJournal();
         if (game.HasEnded && !endingShown)
         {
             endingShown = true;
+            if (room != null) room.ClosePanels();
             ledgerPanel.SetActive(false);
             journalPanel.SetActive(true);
         }
@@ -110,21 +121,16 @@ public class GameUI : MonoBehaviour
     private void RefreshLedger()
     {
         bool due = game.CurrentDate.Date == game.NextRentDate.Date;
-        string pay = game.SalaryReceived
-            ? $"{ShortDate(game.Payday)} / Wages received: ${game.SalaryAmount}"
-            : $"{ShortDate(game.Payday)} / Wages due: +${game.SalaryAmount}";
-        string birthday = game.CurrentDate.Date == game.Birthday.Date ? "Today"
-            : game.CurrentDate.Date > game.Birthday.Date ? "Past date" : "Upcoming";
-        agendaText.text = "<b>UPCOMING & RECENT</b>\n\n" +
-            $"{ShortDate(game.NextRentDate)} / Rent: ${game.RentCost}" +
-            (due ? " <b>DUE TODAY</b>" : "") + "\n\n" + pay + "\n\n" +
-            $"{ShortDate(game.Birthday)} / Friend's birthday\n{birthday}\n\n" +
-            "<b>DAILY COSTS</b>\n\nFood: $20 without stored groceries\nOther essentials: $10\n\n" +
-            $"Food supply: {game.FoodDays} days\n" +
-            (game.HasEnded ? "Run closed." : $"Today's living costs: ${game.LivingCostToday}") +
-            "\n\n<b>EVENT PAYMENTS PENDING</b>\n" +
+        string pay = $"{ShortDate(game.Payday)} / Wages due: +${game.SalaryAmount}";
+        agendaText.text = "<b>AT A GLANCE</b>\n\n" +
+            $"Rent ${game.RentCost}: {ShortDate(game.NextRentDate)}" + (due ? " / TODAY" : "") + "\n" + pay +
+            $"\n\nTonight's living costs: ${game.LivingCostToday}\nStored food: {game.FoodDays} days\n\n" +
+            "<b>BUFFER PLAN</b>\n" + $"Earmarked: ${game.Strategies.PlannedReserve}\n" +
+            (game.Strategies.PlannedReserve > economy.Balance ? "Below your earmarked target.\n" : "") +
+            "Included in your balance; not locked or transferred.\n\n<b>PENDING INCOME</b>\n" +
             (game.PendingPayments.Count == 0 ? "None." : string.Join("\n", System.Linq.Enumerable.Select(
-                game.PendingPayments, p => $"{ShortDate(p.Date)} / +${p.Amount} / {p.Description}")));
+                game.PendingPayments, p => $"{ShortDate(p.Date)} / +${p.Amount} / {p.Description}"))) +
+            "\n\nOpen the wall calendar for all dates.\nScroll the history for past decisions.";
         var text = new StringBuilder();
         for (int i = economy.Transactions.Count - 1; i >= 0; i--)
         {
@@ -150,12 +156,13 @@ public class GameUI : MonoBehaviour
         endDayButton.interactable = !game.HasPendingChoice;
         newRunButton.gameObject.SetActive(game.HasEnded);
         journalFooterText.text = game.HasEnded ? "Your ledger keeps the full story."
+            : game.Mood.IsLow ? "LOW MOOD: check recovery choices. Reaching 0 ends the run."
             : game.HasPendingChoice ? "Choose a response. You can check your ledger first."
             : "Living costs, then any rent due, are paid at End Day.";
-        journalFinanceText.text = $"BALANCE ${economy.Balance:N0}  |  FOOD {game.FoodDays} days  |  LIVING TODAY ${game.LivingCostToday}\n" +
+        journalFinanceText.text = $"CASH ${economy.Balance:N0} | MOOD {game.Mood.Value}/100 | FOOD {game.FoodDays} days | LIVING ${game.LivingCostToday}\n" +
             $"RENT ${game.RentCost}: {ShortDate(game.NextRentDate)}" +
             (game.CurrentDate.Date == game.NextRentDate.Date ? " (TODAY)" : "") +
-            $"  |  WAGES +${game.SalaryAmount}: {ShortDate(game.Payday)}" + (game.SalaryReceived ? " (received)" : "");
+            $"  |  WAGES +${game.SalaryAmount}: {ShortDate(game.Payday)}";
         for (int i = 0; i < choiceButtons.Length; i++)
         {
             var button = choiceButtons[i];
@@ -167,7 +174,7 @@ public class GameUI : MonoBehaviour
             string eventId = game.CurrentEvent.Id;
             var option = game.CurrentEvent.Options[i];
             bool affordable = game.CanChooseEvent(eventId, i);
-            choiceLabels[i].text = option.Label + (affordable ? "" : "  [Not enough cash]");
+            choiceLabels[i].text = game.OptionLabel(option) + (affordable ? "" : "  [" + game.ChoiceBlockedReason(eventId, i) + "]");
             button.interactable = affordable;
             button.onClick.AddListener(() => game.TryChooseEvent(eventId, index));
         }
@@ -185,8 +192,6 @@ public class GameUI : MonoBehaviour
                 (game.HasPendingChoice ? game.CurrentEvent.Body : game.EventResult);
             return;
         }
-        journalBodyText.text = "<b>A SUSPICIOUSLY ORDINARY DAY</b>\n\n" + game.LastSettlement +
-            "\n\nNo new decision today. The fridge hums. Your landlord remains committed to the concept of rent. " +
-            "Check the ledger before turning the page.";
+        journalBodyText.text = "<b>NO NEW DISASTERS</b>\n\n" + game.LastSettlement;
     }
 }

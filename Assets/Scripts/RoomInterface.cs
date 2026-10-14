@@ -1,0 +1,140 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public sealed class RoomInterface : MonoBehaviour
+{
+    public GameManager game;
+    public EconomyManager economy;
+    public GameUI gameUI;
+    public GameObject calendarPanel;
+    public GameObject infoPanel;
+    public TMP_Text calendarTitle;
+    public TMP_Text calendarDetail;
+    public TMP_Text infoTitle;
+    public TMP_Text infoBody;
+    public ScrollRect infoScroll;
+    public Button[] calendarDays;
+    public TMP_Text[] calendarLabels;
+    public TMP_Text nextBillText;
+    public TMP_Text fridgeLabel;
+    public TMP_Text journalLabel;
+    public Button tipButton;
+    public Button returnJournalButton;
+    private DateTime shownMonth;
+    private DateTime selectedDate;
+    private string infoMode;
+    private static readonly CultureInfo English = CultureInfo.GetCultureInfo("en-AU");
+    private void OnEnable() { if (game != null) game.StateChanged += Refresh; }
+    private void OnDisable() { if (game != null) game.StateChanged -= Refresh; }
+    private void Start() { ClosePanels(); Refresh(); }
+    public void ClosePanels()
+    {
+        calendarPanel.SetActive(false); infoPanel.SetActive(false);
+    }
+    private void HideBooks()
+    {
+        gameUI.CloseJournal(); gameUI.CloseLedger(); ClosePanels();
+    }
+    public void OpenFridge()
+    {
+        if (!game.HasStarted) return;
+        HideBooks(); infoMode = "fridge"; infoPanel.SetActive(true); returnJournalButton.gameObject.SetActive(false);
+        RefreshFridge(); ResetInfoScroll();
+    }
+    private void RefreshFridge()
+    {
+        infoTitle.text = "FRIDGE CHECK";
+        infoBody.text = $"<size=48><b>{game.FoodDays} food day(s)</b></size>\n\n" +
+            (game.AteTodaysMeal ? "Today's meal is already eaten. No second portion tonight." : game.FoodDays > 0
+                ? "One stored portion will cover tonight's food." : $"No stored meals. Tonight's food costs ${game.Rules.dailyFood}.") +
+            $"\n\nOther essentials: ${game.Rules.dailyEssentials}/day.\nTonight's total living costs: ${game.LivingCostToday}.\n\n" +
+            "Buying groceries adds food days immediately. Stored meals stack and do not expire in this prototype.";
+    }
+    public void OpenTip()
+    {
+        if (!game.HasStarted) return;
+        HideBooks(); infoMode = "tip"; infoPanel.SetActive(true); returnJournalButton.gameObject.SetActive(true);
+        string key = game.CurrentEvent?.TipKey;
+        if (string.IsNullOrEmpty(key)) key = game.LastTipKey;
+        infoTitle.text = StrategySystem.TipTitle(key);
+        infoBody.text = StrategySystem.Tip(key);
+        ResetInfoScroll();
+    }
+    public void ReturnToJournal() { ClosePanels(); gameUI.OpenJournal(); }
+    public void OpenCalendar()
+    {
+        if (!game.HasStarted) return;
+        HideBooks(); selectedDate = game.CurrentDate;
+        shownMonth = new DateTime(selectedDate.Year, selectedDate.Month, 1);
+        calendarPanel.SetActive(true); RefreshCalendar();
+    }
+    public void PreviousMonth() { shownMonth = shownMonth.AddMonths(-1); RefreshCalendar(); }
+    public void NextMonth() { shownMonth = shownMonth.AddMonths(1); RefreshCalendar(); }
+    private void ResetInfoScroll()
+    {
+        Canvas.ForceUpdateCanvases(); infoScroll.verticalNormalizedPosition = 1; infoScroll.StopMovement();
+    }
+    private void Refresh()
+    {
+        if (game == null || !game.HasStarted) return;
+        nextBillText.text = $"RENT ${game.RentCost}  /  {GameManager.ShortDate(game.NextRentDate)}" +
+            (game.NextRentDate.Date == game.CurrentDate.Date ? "  TODAY" : "");
+        fridgeLabel.text = $"FRIDGE  /  {game.FoodDays} DAYS";
+        journalLabel.text = game.HasEnded ? "REVIEW RUN" : game.HasPendingChoice ? "JOURNAL  /  NEW" : "DAILY JOURNAL";
+        if (calendarPanel.activeSelf) RefreshCalendar();
+        if (infoPanel.activeSelf && infoMode == "fridge") RefreshFridge();
+        tipButton.gameObject.SetActive(game.CurrentEvent != null || !string.IsNullOrEmpty(game.LastTipKey));
+    }
+    public List<string> Entries(DateTime date, bool compact = false)
+    {
+        var list = new List<string>();
+        var start = game.CurrentDate.AddDays(1 - game.DayNumber).Date;
+        int day = (date.Date - start).Days + 1;
+        if (day < 1) return list;
+        if (day >= game.Rules.firstRentDay && (day - game.Rules.firstRentDay) % game.Rules.rentInterval == 0)
+            list.Add(compact ? "RENT" : $"Rent: -${game.RentCost} after living costs");
+        if (day >= game.Rules.firstPayDay && (day - game.Rules.firstPayDay) % game.Rules.payInterval == 0)
+            list.Add(compact ? "WAGES" : $"Regular wages: +${game.SalaryAmount} in the morning");
+        if (day <= game.TotalDays)
+        {
+            var e = game.Schedule.ForDay(day);
+            if (e != null) list.Add(compact ? (e.id == "birthday" ? "BIRTHDAY" : "EVENT") : (e.id == "birthday" ? "Alex's birthday" : e.title));
+            if (day == 16 && game.Strategies.ReminderSet) list.Add(compact ? "REMINDER" : "Reminder: review your $40 emergency-buffer goal");
+            if (day == 10 && game.Strategies.WaitingForPurchase) list.Add(compact ? "WISHLIST" : "Revisit headphone wishlist after today's job decision");
+        }
+        foreach (var p in game.PendingPayments.Where(p => p.Date.Date == date.Date))
+            list.Add(compact ? "+$" + p.Amount : $"Confirmed income +${p.Amount}: {p.Description}");
+        return list;
+    }
+    public void RefreshCalendar()
+    {
+        calendarTitle.text = shownMonth.ToString("MMMM yyyy", English).ToUpperInvariant();
+        int offset = ((int)shownMonth.DayOfWeek + 6) % 7;
+        for (int i = 0; i < calendarDays.Length; i++)
+        {
+            var date = shownMonth.AddDays(i - offset);
+            var button = calendarDays[i];
+            button.onClick.RemoveAllListeners();
+            var entries = Entries(date, true);
+            calendarLabels[i].text = date.Day + "\n<size=16>" + string.Join("\n", entries.Take(3)) + (entries.Count > 3 ? "\n+MORE" : "") + "</size>";
+            bool today = date.Date == game.CurrentDate.Date;
+            bool selected = date.Date == selectedDate.Date;
+            button.GetComponent<Image>().color = selected ? new Color32(211, 174, 96, 255) : today
+                ? new Color32(180, 203, 177, 255) : date.Month == shownMonth.Month ? new Color32(235, 225, 201, 255) : new Color32(210, 205, 192, 255);
+            button.onClick.AddListener(() => { selectedDate = date; RefreshCalendar(); });
+        }
+        string detail = selectedDate.ToString("ddd, dd MMM yyyy", English);
+        if (selectedDate.Date == game.CurrentDate.Date) detail += "  / TODAY";
+        if (selectedDate.Date < game.CurrentDate.Date) detail += "  / PAST";
+        var selectedEntries = Entries(selectedDate);
+        calendarDetail.text = "<b>" + detail + "</b>\n\n" + (selectedEntries.Count > 0 ? string.Join("\n\n", selectedEntries) : "No special appointment.") +
+            "\n\nFood and essentials settle every evening. Tap another date for details.";
+        if ((selectedDate - game.CurrentDate.AddDays(1-game.DayNumber)).Days >= game.TotalDays)
+            calendarDetail.text += "\n\nBeyond this run: recurring bills still shown.";
+    }
+}

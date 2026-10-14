@@ -1,6 +1,6 @@
 # Financial Game Proof of Concept
 
-面向大学生的金融决策严肃游戏原型。当前已实现 10 天可玩流程、每日事件选择、收支记账和账单安排；游戏界面为英文。
+面向大学生的金融决策严肃游戏原型。当前为 **30 天房间与技巧版本**：手绘风格房间、可点击冰箱与日历、六类金融技巧、心情、逐笔记账、每周账单和延迟收入；游戏界面为英文。
 
 ## 开发环境
 
@@ -19,17 +19,24 @@
 
 ## 试玩与验证
 
-- 点击右下角 **Daily Journal**：第 1、3、5、7、9 天有三选一事件，选完后才能 End Day。
-- 点击左下角 **Ledger**：查看交易、未来账单、待到账款项和决策记录。
-- 开局资金随机为 $740 / $760 / $780；房租 $500，普通每日生活费 $30。有食物储备时仅扣其他生活费 $10。
-- 无法支付生活费或到期房租时结束，可用 **New Run** 重开。独立开始菜单尚未实现。
-- 在刚进入 Play 的第一天，运行 **Tools > Financial Game > Validate Event Choices**。验证覆盖三个开局下的 729 种计划选择组合：507 种通关，81 种交租失败，141 种生活费不足。这个比例不是实际玩家通关率。
+- 点击右下角桌上的 **Journal**：处理当天事件，完成所有阶段后才能 End Day。17 个固定事件起点，另有条件触发的回访。
+- 点击冰箱查看食物；点击墙上 **Calendar** 查看房租、工资、生日及已确认到账日期。
+- 点击中间桌上的 **Ledger**：查看交易、待到账款项、缓冲目标和决策记录。点击日志内 **Why it matters** 可选读技巧解释。
+- 开局资金随机为 $740 / $780 / $820；每周房租 $500、固定工资 $540，普通每日生活费 $30。有食物储备时仅扣其他生活费 $10。
+- 心情初始 65。工作降低心情，恢复活动增加心情；连续工作有额外损耗。选项显示实际变化，免费恢复也可用。
+- 无法支付生活费、到期房租或心情降至 0 时结束，可用 **New Run** 重开。独立开始菜单尚未实现。
+- **Tools > Financial Game > Validate Room Rules**：三个开局共采样 1,500 条随机路线，检查结算与技巧状态。随机路线通关比例约 15%–38%，不是实际玩家通关率；三个开局的规划路线均可通关。
+- 刚进入 Play 的第一天可运行 **Validate Room Live UI**，通过真实场景按钮的事件回调完成一条规划路线并检查日历、冰箱、布局、滚动和重开。该测试会替代当前这一局，结束后恢复到新开局。
 - 场景中的 UI 已保存并绑定；正常试玩不需要运行生成工具。
-- 当前 Build Profiles 尚未配置场景列表；导出前添加 `MainGame`。
+- 导出前确认 Build Profiles 的场景列表包含 `MainGame`。
 
-事件机制、依据与数值说明见 [EventDesign.md](Assets/Documentation/EventDesign.md)。
+当前玩法、技巧事件、实现边界与参考资料见 [房间与技巧说明](Assets/Documentation/RoomAndStrategies.md)。原有财务与心情规则见 [30 天基础规则](Assets/Documentation/ThirtyDayPrototype.md)。选中 `GameSystems` 后，可在 Finance Rules、Mood System、Game Event Schedule 中调整参数；条件事件由 StrategySystem 管理，房间界面由 Canvas 上的 RoomInterface 管理。
 
-供组员撰写 PoC 说明 PDF 的中文资料见 [原型创作过程与完整玩法说明](docs/原型创作过程与完整玩法说明.md)，包含创作过程、全部功能与事件、数值示例、测试、课堂反馈及下一步计划。
+房间插画保存在 `Assets/Art/StudentRoom.png`，生成方式与提示词见 [素材说明](Assets/Art/StudentRoom-README.md)。
+
+旧版事件机制与文献边界保留在 [EventDesign.md](Assets/Documentation/EventDesign.md)，其中十天版数值已被新版替代。
+
+供组员撰写此前 PoC 说明 PDF 的 [原型创作过程与完整玩法说明](docs/原型创作过程与完整玩法说明.md) 是十天版历史记录，不能当作当前版本的功能说明。
 
 选择的是同时包含 `Assets`、`Packages` 和 `ProjectSettings` 的文件夹，不是单独的 `Assets` 文件夹。
 

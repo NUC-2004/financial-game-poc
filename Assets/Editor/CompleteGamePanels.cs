@@ -27,6 +27,8 @@ public static class CompleteGamePanels
         var scene = SceneManager.GetActiveScene();
         if (scene.path != "Assets/Scenes/MainGame.unity")
             throw new InvalidOperationException("Open MainGame before completing its UI.");
+        if (UnityEngine.Object.FindFirstObjectByType<RoomInterface>() != null)
+        { RoomUpgrade.Install(); return; }
         var canvas = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Canvas>(true)).Single();
         Undo.RegisterFullObjectHierarchyUndo(canvas.gameObject, "Complete Journal and Ledger");
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -154,53 +156,7 @@ public static class CompleteGamePanels
     }
 
     [MenuItem("Tools/Financial Game/Validate Panels in Play Mode")]
-    public static void ValidateInPlayMode()
-    {
-        if (!EditorApplication.isPlaying) throw new InvalidOperationException("Enter Play mode first.");
-        var ui = UnityEngine.Object.FindFirstObjectByType<GameUI>();
-        var game = UnityEngine.Object.FindFirstObjectByType<GameManager>();
-        var economy = UnityEngine.Object.FindFirstObjectByType<EconomyManager>();
-        void Check(bool ok, string message) { if (!ok) throw new Exception("UI validation: " + message); }
-        Check(game.DayNumber == 1 && economy.Transactions.Count == 1, "Start with a fresh run.");
-        int opening = economy.Balance;
-        var canvas = ui.transform;
-        var ledger = canvas.Find("LedgerPanel");
-        var journal = canvas.Find("JournalPanel");
-        var close = ledger.Find("BookWindow/CloseLedgerButton").GetComponent<Button>();
-        var end = journal.Find("JournalWindow/EndDayButton").GetComponent<Button>();
-        ui.OpenLedger();
-        Check(ledger.gameObject.activeSelf && !journal.gameObject.activeSelf, "Ledger opens exclusively.");
-        close.onClick.Invoke();
-        Check(!ledger.gameObject.activeSelf && economy.Balance == opening, "Close does not spend money.");
-        for (int i = 0; i < 10; i++)
-        {
-            ui.OpenJournal();
-            Check(journal.gameObject.activeSelf && !ledger.gameObject.activeSelf, "Journal opens exclusively.");
-            if (game.HasPendingChoice) game.TryChooseEvent(game.CurrentEvent.Id, 2);
-            end.onClick.Invoke();
-        }
-        Check(game.HasEnded && game.Completed, "Ten days finish.");
-        Check(economy.Balance == opening - 300 - 500 + 700, "Accounting totals.");
-        Check(economy.Transactions.Count == 23, "Opening + 20 daily costs + rent + wages.");
-        Check(!end.gameObject.activeSelf, "End Day hidden after completion.");
-        ui.OpenLedger();
-        Canvas.ForceUpdateCanvases();
-        var scroll = ledger.Find("BookWindow/TransactionScrollView").GetComponent<ScrollRect>();
-        Check(scroll.content.rect.height > scroll.viewport.rect.height, "Ledger grows and scrolls.");
-        Check(scroll.verticalNormalizedPosition > .99f, "Ledger opens at newest transaction.");
-        ui.CloseLedger();
-        Check(!journal.gameObject.activeSelf, "Closing ledger after ending leaves main screen accessible.");
-        ui.OpenJournal();
-        journal.Find("JournalWindow/NewRunButton").GetComponent<Button>().onClick.Invoke();
-        Check(game.DayNumber == 1 && economy.Transactions.Count == 1, "Restart clears history.");
-        economy.TrySpend(game.CurrentDate, economy.Balance - 600, "Validation expense");
-        for (int i = 0; i < 5; i++) { ui.OpenJournal(); if (game.HasPendingChoice) game.TryChooseEvent(game.CurrentEvent.Id, 2); end.onClick.Invoke(); }
-        Check(game.HasEnded && !game.Completed && economy.Balance == 450, "Rent failure displayed.");
-        Check(journal.gameObject.activeSelf, "Failure opens journal.");
-        ui.StartRandomRun();
-        Check(game.DayNumber == 1 && economy.Transactions.Count == 1, "Clean run restored after validation.");
-        Debug.Log("UI_VALIDATION_PASSED: panel buttons, day progression, 23 transactions, scroll overflow, wage/rent totals, failure screen, and restart.");
-    }
+    public static void ValidateInPlayMode() => RoomValidation.Live();
 
     private static T Ensure<T>(GameObject go) where T : Component => go.GetComponent<T>() ?? Undo.AddComponent<T>(go);
     private static RectTransform Child(Transform parent, string name)
