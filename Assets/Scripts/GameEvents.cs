@@ -63,6 +63,7 @@ public partial class GameManager
         if (!HasPendingChoice || CurrentEvent.Id != eventId || index < 0 || index >= CurrentEvent.Options.Count) return "Unavailable";
         var c = CurrentEvent.Options[index];
         if (economy.Balance < c.cost) return "Not enough cash";
+        if (UnallocatedCash < c.cost) return "Release rent funds first";
         if (CurrentEvent.Id == "market_buy" && Strategies.ShoppingLimit >= 0 && c.cost > Strategies.ShoppingLimit) return "Over trip limit";
         if (c.action == StrategyAction.EatFirst && (FoodDays == 0 || AteTodaysMeal)) return "No stored meal";
         if (c.action == StrategyAction.Reserve40 && economy.Balance < 40) return "Need $40 available";
@@ -76,7 +77,9 @@ public partial class GameManager
             $" / +${c.income} " + (c.delayDays == 0 ? "today" : ShortDate(CurrentDate.AddDays(c.delayDays)));
         if (c.foodDays > 0) label += $" / +{c.foodDays} food days";
         int delta = mood.Preview(c.mood, c.isWork, DayNumber);
-        if (c.mood != 0 || delta != 0) label += $" / Mood {delta:+0;-0;0}";
+        if (delta < 0) label += c.isWork ? (c.mood <= -20 ? " / Very tiring" : " / Tiring") : " / Disappointing";
+        else if (delta > 0) label += c.isRecovery ? " / Restorative" : " / Small lift";
+        else if (c.isRecovery) label += " / Rest";
         if (mood.Value + delta == 0) label += " [ENDS RUN]";
         return label;
     }
@@ -87,9 +90,13 @@ public partial class GameManager
         var resolvedEvent = CurrentEvent;
         int cashBefore = economy.Balance, moodBefore = mood.Value;
         if (c.cost > 0 && !economy.TrySpend(CurrentDate, c.cost, CurrentEvent.Title + " / " + c.label)) return false;
+        if (c.foodDays > 0 && (resolvedEvent.TipKey == "unit" || resolvedEvent.TipKey == "list" || resolvedEvent.Id == "hungry_basket"))
+            RecordFoodPurchase(FoodDays, c.foodDays, c.cost);
         FoodDays += c.foodDays;
         if (c.action == StrategyAction.EatFirst) { FoodDays--; AteTodaysMeal = true; }
         Strategies.Apply(c.action);
+        if (c.action == StrategyAction.BuySnackPlan)
+        { FoodDiscountStartDay = DayNumber + 1; FoodDiscountEndDay = DayNumber + 15; }
         string incomeInfo = "";
         if (c.income > 0)
         {
@@ -109,7 +116,7 @@ public partial class GameManager
         }
         mood.Apply(c.mood, c.isWork, DayNumber, c.isRecovery);
         EventResolved = true;
-        EventResult = c.result + $"\n\nCash: ${cashBefore} -> ${economy.Balance}. Mood: {moodBefore} -> {mood.Value}." +
+        EventResult = c.result + $"\n\nCash: ${cashBefore} -> ${economy.Balance}. Feeling: {MoodSystem.StatusFor(moodBefore)} -> {mood.Status}." +
             (c.foodDays > 0 ? $"\nFood: +{c.foodDays} days, usable tonight." : "") + incomeInfo;
         decisions.Add(new DecisionRecord(CurrentDate, CurrentEvent.Title, c.label, EventResult,
             cashBefore, economy.Balance, moodBefore, mood.Value, c.isWork, c.isRecovery));
@@ -122,7 +129,7 @@ public partial class GameManager
         }
         LastSettlement = "Decision recorded. Check tonight's costs before ending the day.";
         if (mood.Value <= 0)
-            FinishRun(false, "mood", "You cannot keep up this schedule. You pause your plans and ask for support.\nMood reached 0. Money alone could not sustain this run.");
+            FinishRun(false, "mood", "You cannot keep up this schedule. You pause your plans and ask for support.\nYou are too exhausted to continue. Money alone could not sustain this run.");
         else StateChanged?.Invoke();
         return true;
     }

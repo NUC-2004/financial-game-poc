@@ -113,7 +113,7 @@ public static class RoomValidation
                     if (trial == 0)
                     {
                         Check(g.Completed, "Planned strategy route completes for every opening");
-                        Check(g.Strategies.encountered.Count == 6, "All six financial techniques encountered");
+                        Check(g.Strategies.encountered.Count == 7, "All seven financial techniques encountered");
                         Check(g.Decisions.Any(d => d.Title == "STILL WANT THEM?") && g.Decisions.Any(d => d.Title == "ONE MORE SHIFT"), "Wishlist and job both run on Day 10");
                         Check(g.Decisions.Any(d => d.Title == "THE REMINDER YOU ASKED FOR"), "Scheduled reminder appears");
                     }

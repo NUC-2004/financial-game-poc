@@ -29,7 +29,7 @@ public partial class GameManager : MonoBehaviour
     public string LastSettlement { get; private set; }
     public string EndingMessage { get; private set; }
     public string FailureReason { get; private set; }
-    public int FoodCostToday => AteTodaysMeal || FoodDays > 0 ? 0 : rules.dailyFood;
+    public int FoodCostToday => AteTodaysMeal || FoodDays > 0 ? 0 : Math.Max(0, rules.dailyFood - (HasFoodDiscount ? 3 : 0));
     public int LivingCostToday => FoodCostToday + rules.dailyEssentials;
     public int RentCost => rules.rent;
     public int SalaryAmount => rules.wages;
@@ -67,15 +67,16 @@ public partial class GameManager : MonoBehaviour
         HasStarted = true; HasEnded = false; Completed = false; SalaryReceived = false;
         EndingMessage = ""; FailureReason = "";
         OpeningBalance = rules.openingBalances[openingIndex];
-        mood.ResetRun(); Strategies.ResetRun(); AteTodaysMeal = false;
+        mood.ResetRun(); Strategies.ResetRun(); ResetPlanning(); AteTodaysMeal = false;
         LastSettlement = "A new month. Same landlord. Check the money tracker before spending.";
         economy.StartNewAccount(CurrentDate, OpeningBalance);
         ResetEvents(); StateChanged?.Invoke(); return true;
     }
     public bool TryBuyFood(int price, int days)
     {
-        if (!HasStarted || HasEnded || price <= 0 || days <= 0) return false;
+        if (!HasStarted || HasEnded || price <= 0 || days <= 0 || price > UnallocatedCash) return false;
         if (!economy.TrySpend(CurrentDate, price, $"Groceries: {days} days of food")) return false;
+        RecordFoodPurchase(FoodDays, days, price);
         FoodDays += days; StateChanged?.Invoke(); return true;
     }
     public void EndDay()
@@ -86,22 +87,29 @@ public partial class GameManager : MonoBehaviour
         {
             FinishRun(false, "living", $"Today's essentials need ${dailyTotal}. You have ${economy.Balance}.\nShortfall: ${dailyTotal - economy.Balance}. No partial payment was taken."); return;
         }
-        if (foodCost > 0) economy.TrySpend(CurrentDate, foodCost, "Daily food");
+        if (foodCost > 0)
+        {
+            economy.TrySpend(CurrentDate, foodCost, "Daily food");
+            if (HasFoodDiscount) FoodDiscountSavings += rules.dailyFood - foodCost;
+        }
         else if (!AteTodaysMeal) FoodDays--;
         economy.TrySpend(CurrentDate, rules.dailyEssentials, "Other daily essentials");
         LastSettlement = $"Living costs paid: ${dailyTotal}.";
+        SettleReserveAfterLiving();
         if (CurrentDate.Date >= NextRentDate.Date)
         {
             if (!economy.TrySpend(CurrentDate, rules.rent, "Weekly rent"))
             {
                 FinishRun(false, "rent", $"Rent needs ${rules.rent}. After living costs, you have ${economy.Balance}.\nShortfall: ${rules.rent - economy.Balance}. Tomorrow's money cannot pay today's rent."); return;
             }
+            int reservedPayment = Math.Min(RentReserve, rules.rent);
+            RentReserve -= reservedPayment; RentPaidFromReserve += reservedPayment;
             RentsPaid++; LastSettlement += $"\nRent paid: ${rules.rent}. Your landlord remains a fan.";
             NextRentDate = NextRentDate.AddDays(rules.rentInterval);
         }
         if (DayNumber >= rules.runDays)
         {
-            FinishRun(true, "", $"You made it through {rules.runDays} days.\nCash: ${economy.Balance} | Mood: {mood.Value}/100 | Food: {FoodDays} days\nRent payments made: {RentsPaid}. Lowest mood: {mood.Lowest}.\nNext rent: ${rules.rent} on {ShortDate(NextRentDate)}. The bills continue after the credits."); return;
+            FinishRun(true, "", $"You made it through {rules.runDays} days.\nCash: ${economy.Balance} | Feeling: {mood.Status} | Food: {FoodDays} days\nRent payments made: {RentsPaid}. Lowest state: {MoodSystem.StatusFor(mood.Lowest)}.\nNext rent: ${rules.rent} on {ShortDate(NextRentDate)}. The bills continue after the credits."); return;
         }
         DayNumber++; CurrentDate = CurrentDate.AddDays(1); AteTodaysMeal = false;
         if (CurrentDate.Date >= Payday.Date)
@@ -117,20 +125,6 @@ public partial class GameManager : MonoBehaviour
     {
         HasEnded = true; Completed = completed; FailureReason = reason;
         EndingMessage = message + "\n\n" + BuildReview(); StateChanged?.Invoke();
-    }
-    private string BuildReview()
-    {
-        int shifts = 0, recovery = 0;
-        foreach (var d in decisions) { if (d.IsWork) shifts++; if (d.IsRecovery) recovery++; }
-        string review = $"Your plan: {shifts} extra jobs; {recovery} recovery choices.";
-        int pending = 0; foreach (var p in pendingPayments) pending += p.Amount;
-        if (pending > 0) review += $"\n${pending} is still pending. It was never included in your spendable balance.";
-        if (decisions.Count > 0)
-        {
-            var d = decisions[decisions.Count - 1];
-            review += $"\nLast choice: {d.Choice}. Cash ${d.CashBefore} to ${d.CashAfter}; mood {d.MoodBefore} to {d.MoodAfter}.";
-        }
-        return review;
     }
     public static string ShortDate(DateTime date) => date.ToString("dd MMM", System.Globalization.CultureInfo.InvariantCulture);
 }

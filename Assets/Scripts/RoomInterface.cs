@@ -25,6 +25,10 @@ public sealed class RoomInterface : MonoBehaviour
     public TMP_Text journalLabel;
     public Button tipButton;
     public Button returnJournalButton;
+    public TMP_Text rentPlanText;
+    public Button reserveRentButton, releaseRentButton;
+    public Button groceryShopButton, smallGroceryButton, bulkGroceryButton;
+    public Button shopTrackerButton;
     private DateTime shownMonth;
     private DateTime selectedDate;
     private string infoMode;
@@ -72,9 +76,30 @@ public sealed class RoomInterface : MonoBehaviour
         infoTitle.text = "FRIDGE CHECK";
         infoBody.text = $"<size=48><b>{game.FoodDays} food day(s)</b></size>\n\n" +
             (game.AteTodaysMeal ? "Today's meal is already eaten. No second portion tonight." : game.FoodDays > 0
-                ? "One stored portion will cover tonight's food." : $"No stored meals. Tonight's food costs ${game.Rules.dailyFood}.") +
+                ? "One stored portion will cover tonight's food." : $"No stored meals. Tonight's food costs ${game.FoodCostToday}.") +
             $"\n\nOther essentials: ${game.Rules.dailyEssentials}/day.\nTonight's total living costs: ${game.LivingCostToday}.\n\n" +
-            "Buying groceries adds food days immediately. Stored meals stack and do not expire in this prototype.";
+            "Groceries are purchased through journal events. Stored meals stack and do not expire.\n\n" + game.FoodDiscountSummary;
+        RefreshInfoActions();
+    }
+    private void RefreshInfoActions()
+    {
+        if (groceryShopButton != null) groceryShopButton.gameObject.SetActive(false);
+        if (shopTrackerButton != null) shopTrackerButton.gameObject.SetActive(false);
+        if (smallGroceryButton != null) smallGroceryButton.gameObject.SetActive(false);
+        if (bulkGroceryButton != null) bulkGroceryButton.gameObject.SetActive(false);
+        infoScroll.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 550);
+        returnJournalButton.gameObject.SetActive(infoMode != "fridge");
+    }
+    public void ReserveRent() { game.ReserveForRent(); RefreshRentPlan(); }
+    public void ReleaseRent() { game.ReleaseRentReserve(); RefreshRentPlan(); }
+    public void RefreshRentPlan()
+    {
+        if (rentPlanText == null || !game.HasStarted) return;
+        rentPlanText.text = $"TOTAL BALANCE: ${economy.Balance}\nRENT PLAN: ${game.RentReserve} / ${game.RentCost}\nUNALLOCATED: ${game.UnallocatedCash}\nIncluded in total. Living costs may use it.";
+        int addition = Math.Max(0, Math.Min(game.RentCost, economy.Balance) - game.RentReserve);
+        reserveRentButton.interactable = !game.HasEnded && addition > 0;
+        reserveRentButton.GetComponentInChildren<TMP_Text>().text = addition > 0 ? $"Reserve ${addition}" : "Rent reserved";
+        releaseRentButton.interactable = !game.HasEnded && game.RentReserve > 0;
     }
     public void OpenTip()
     {
@@ -83,6 +108,7 @@ public sealed class RoomInterface : MonoBehaviour
         string key = game.CurrentEvent.TipKey;
         infoTitle.text = StrategySystem.TipTitle(key);
         infoBody.text = StrategySystem.Tip(key);
+        RefreshInfoActions();
         ResetInfoScroll();
     }
     public void ReturnToJournal() { ClosePanels(); gameUI.OpenJournal(); }
@@ -108,6 +134,8 @@ public sealed class RoomInterface : MonoBehaviour
         journalLabel.text = game.HasEnded ? "REVIEW RUN" : game.HasPendingChoice ? "JOURNAL  /  NEW" : "DAILY JOURNAL";
         if (calendarPanel.activeSelf) RefreshCalendar();
         if (infoPanel.activeSelf && infoMode == "fridge") RefreshFridge();
+
+        RefreshRentPlan();
         tipButton.gameObject.SetActive(!game.HasEnded && game.CurrentEvent != null);
     }
     public List<string> Entries(DateTime date, bool compact = false)

@@ -24,6 +24,9 @@ public class GameUI : MonoBehaviour
     [SerializeField] private TMP_Text statusText;
     [SerializeField] private TMP_Text moodText;
     [SerializeField] private Slider moodBar;
+    [SerializeField] private Image moodPortrait;
+    [Tooltip("Happy, Calm, Tired, Exhausted")]
+    [SerializeField] private Sprite[] moodFaces = new Sprite[4];
     [Header("Money Tracker")]
     [SerializeField] private TMP_Text agendaText;
     [SerializeField] private TMP_Text transactionsText;
@@ -118,9 +121,10 @@ public class GameUI : MonoBehaviour
         dateText.text = $"DAY {game.DayNumber}/{game.TotalDays}  |  {ShortDate(game.CurrentDate)}";
         balanceText.text = $"AUD ${economy.Balance:N0}";
         foodText.text = $"FOOD SUPPLY\n{game.FoodDays} days";
-        if (moodText != null) moodText.text = $"MOOD {game.Mood.Value}/100" + (game.Mood.IsLow ? "  LOW" : "");
-        if (moodBar != null) moodBar.value = game.Mood.Value;
-        if (moodText != null) moodText.color = game.Mood.IsLow ? new Color32(255, 185, 122, 255) : Color.white;
+        if (moodText != null) moodText.text = game.Mood.Status;
+        if (moodBar != null) moodBar.gameObject.SetActive(false);
+        if (moodPortrait != null && moodFaces.Length == 4) moodPortrait.sprite = moodFaces[game.Mood.FaceIndex];
+        if (moodText != null) moodText.color = game.Mood.FaceIndex == 3 ? new Color32(255, 185, 122, 255) : Color.white;
         statusText.text = game.HasEnded ? (game.Completed ? "Month complete. Open the journal to review." : "Run ended. Open the journal to review.")
             : game.HasPendingChoice ? "A new decision is waiting. Open your journal." : "Decision recorded. End the day from your journal.";
         RefreshLedger();
@@ -142,10 +146,13 @@ public class GameUI : MonoBehaviour
             $"\n\nTonight's living costs: ${game.LivingCostToday}\nStored food: {game.FoodDays} days\n\n" +
             "<b>BUFFER PLAN</b>\n" + $"Earmarked: ${game.Strategies.PlannedReserve}\n" +
             (game.Strategies.PlannedReserve > economy.Balance ? "Below your earmarked target.\n" : "") +
-            "Included in your balance; not locked or transferred.\n\n<b>PENDING INCOME</b>\n" +
+            "A reminder goal; separate from your rent plan.\n\n<b>PENDING INCOME</b>\n" +
             (game.PendingPayments.Count == 0 ? "None." : string.Join("\n", System.Linq.Enumerable.Select(
                 game.PendingPayments, p => $"{ShortDate(p.Date)} / +${p.Amount} / {p.Description}"))) +
-            "\n\nOpen the wall calendar for all dates.\nScroll the history for past decisions.";
+            "\n\nPurchases use unallocated cash. Daily living can use rent funds if needed; rent is paid automatically.\n\n" +
+            "<b>RENT PLAN HISTORY</b>\n" +
+            (game.PlanHistory.Count == 0 ? "No rent funds set aside yet." : string.Join("\n\n", game.PlanHistory.Reverse().Take(3)));
+        if (room != null) room.RefreshRentPlan();
         var text = new StringBuilder();
         for (int i = economy.Transactions.Count - 1; i >= 0; i--)
         {
@@ -171,13 +178,13 @@ public class GameUI : MonoBehaviour
         endDayButton.interactable = !game.HasPendingChoice;
         newRunButton.gameObject.SetActive(game.HasEnded);
         journalFooterText.text = game.HasEnded ? "Your money tracker keeps the full story."
-            : game.Mood.IsLow ? "LOW MOOD: check recovery choices. Reaching 0 ends the run."
+            : game.Mood.FaceIndex == 3 ? "EXHAUSTED: make time to recover. More work may end this run."
             : game.HasPendingChoice ? "Choose a response. You can check your money tracker first."
             : "Living costs, then any rent due, are paid at End Day.";
-        journalFinanceText.text = $"CASH ${economy.Balance:N0} | MOOD {game.Mood.Value}/100 | FOOD {game.FoodDays} days | LIVING ${game.LivingCostToday}\n" +
-            $"RENT ${game.RentCost}: {ShortDate(game.NextRentDate)}" +
+        journalFinanceText.text = $"TOTAL ${economy.Balance:N0} | UNALLOCATED ${game.UnallocatedCash} | FEELING {game.Mood.Status}\n" +
+            $"FOOD {game.FoodDays} days | TONIGHT ${game.LivingCostToday} | RENT ${game.RentCost}: {ShortDate(game.NextRentDate)}" +
             (game.CurrentDate.Date == game.NextRentDate.Date ? " (TODAY)" : "") +
-            $"  |  ALLOWANCE +${game.SalaryAmount}: {ShortDate(game.Payday)}";
+            $"\nALLOWANCE +${game.SalaryAmount}: {ShortDate(game.Payday)}";
         for (int i = 0; i < choiceButtons.Length; i++)
         {
             var button = choiceButtons[i];

@@ -38,6 +38,27 @@ public static class RoomUpgrade
             }
             schedule.balanceRevision = 1; EditorUtility.SetDirty(schedule);
         }
+        if (schedule.balanceRevision < 2)
+        {
+            Undo.RecordObject(schedule, "Adjust friend's birthday mood");
+            var birthday = schedule.events.Find(e => e.id == "birthday");
+            if (birthday != null)
+                birthday.choices = GameEventSchedule.Defaults().Find(e => e.id == "birthday").choices;
+            schedule.balanceRevision = 2; EditorUtility.SetDirty(schedule);
+        }
+        if (schedule.balanceRevision < 3)
+        {
+            Undo.RecordObject(schedule, "Different grocery planning contexts");
+            StrategySystem.ApplyGroceryContexts(schedule.events);
+            schedule.balanceRevision = 3; EditorUtility.SetDirty(schedule);
+        }
+        if (schedule.balanceRevision < 4)
+        {
+            Undo.RecordObject(schedule, "Event-only food shopping and snack offer");
+            StrategySystem.ApplySnackOffer(schedule.events);
+            StrategySystem.ApplyGroceryContexts(schedule.events);
+            schedule.balanceRevision = 4; EditorUtility.SetDirty(schedule);
+        }
         var ui = UnityEngine.Object.FindFirstObjectByType<GameUI>();
         var room = ui.GetComponent<RoomInterface>() ?? Undo.AddComponent<RoomInterface>(ui.gameObject);
         Undo.RegisterFullObjectHierarchyUndo(ui.gameObject, "Install illustrated room");
@@ -62,6 +83,40 @@ public static class RoomUpgrade
         MoveText(main, root, "MoodText", .76f, .925f, .98f, .985f, 26);
         var moodBar = main.Find("MoodBar") ?? root.Find("MoodBar");
         moodBar.SetParent(root, false); Anchors((RectTransform)moodBar, .76f, .915f, .965f, .928f);
+        moodBar.gameObject.SetActive(false);
+        var moodCard = Rect(root, "MoodCard");
+        moodCard.anchorMin = moodCard.anchorMax = moodCard.pivot = Vector2.one;
+        moodCard.anchoredPosition = new Vector2(-24, -10); moodCard.sizeDelta = new Vector2(160, 174);
+        Paint(moodCard, new Color(.04f, .045f, .04f, .94f), false);
+        var moodImageRect = Rect(moodCard, "Portrait"); Place(moodImageRect, 16, -8, 128, 128);
+        var moodImage = Ensure<Image>(moodImageRect.gameObject);
+        moodImage.color = Color.white; moodImage.raycastTarget = false; moodImage.preserveAspect = true;
+        uiFields.Update();
+        var moodLabel = (TMP_Text)uiFields.FindProperty("moodText").objectReferenceValue;
+        moodLabel.transform.SetParent(moodCard, false); Place(moodLabel.rectTransform, 8, -140, 144, 28);
+        moodLabel.alignment = TextAlignmentOptions.Center; moodLabel.text = "Calm";
+        uiFields.FindProperty("moodPortrait").objectReferenceValue = moodImage;
+        var faces = uiFields.FindProperty("moodFaces"); faces.arraySize = 4;
+        string[] faceNames = { "Happy", "Calm", "Tired", "Exhausted" };
+        for (int i = 0; i < faceNames.Length; i++)
+        {
+            string path = "Assets/Art/Mood/" + faceNames[i] + ".png";
+            var moodImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (moodImporter == null) throw new InvalidOperationException("Missing mood artwork: " + path);
+            if (moodImporter.textureType != TextureImporterType.Sprite || moodImporter.filterMode != FilterMode.Point ||
+                moodImporter.mipmapEnabled || moodImporter.textureCompression != TextureImporterCompression.Uncompressed ||
+                !moodImporter.alphaIsTransparency || moodImporter.spriteImportMode != SpriteImportMode.Single)
+            {
+                moodImporter.textureType = TextureImporterType.Sprite; moodImporter.spriteImportMode = SpriteImportMode.Single;
+                moodImporter.filterMode = FilterMode.Point; moodImporter.mipmapEnabled = false;
+                moodImporter.textureCompression = TextureImporterCompression.Uncompressed;
+                moodImporter.alphaIsTransparency = true; moodImporter.spritePixelsPerUnit = 64;
+                moodImporter.SaveAndReimport();
+            }
+            faces.GetArrayElementAtIndex(i).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+        uiFields.ApplyModifiedProperties();
+        moodImage.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Mood/Calm.png");
         var food = main.Find("FoodText"); if (food) food.gameObject.SetActive(false);
         foreach (string old in new[] { "LedgerButton", "JournalButton" })
         { var child = main.Find(old); if (child) child.gameObject.SetActive(false); }
@@ -116,15 +171,55 @@ public static class RoomUpgrade
         room.returnJournalButton = Button(sheet, "BackToJournal", "Back to journal", 750, -720, 320, 65);
         Wire(room.returnJournalButton, room.ReturnToJournal);
         Wire(Button(sheet, "CalendarShortcut", "Calendar", 50, -720, 240, 65), room.OpenCalendar);
+        foreach (string name in new[] { "GroceryShopButton", "ShopTrackerButton", "BuySmallButton", "BuyBulkButton" })
+        {
+            var old = sheet.Find(name);
+            if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
+        }
+        room.groceryShopButton = room.shopTrackerButton = room.smallGroceryButton = room.bulkGroceryButton = null;
+
+        var book = ui.transform.Find("LedgerPanel/BookWindow");
+        room.rentPlanText = Label(book, "RentPlanSummary", "TOTAL / RENT PLAN / UNALLOCATED", 24, 45, -125, 540, 155);
+        room.reserveRentButton = Button(book, "ReserveRentButton", "Reserve for rent", 45, -300, 255, 65);
+        Wire(room.reserveRentButton, room.ReserveRent);
+        room.releaseRentButton = Button(book, "ReleaseRentButton", "Release reserve", 315, -300, 255, 65);
+        Wire(room.releaseRentButton, room.ReleaseRent);
+        var planner = book.Find("PlannerScroll") as RectTransform;
+        if (planner != null) Place(planner, 45, -390, 540, 405);
+        Wire(Button(book, "BackToJournal", "Back to journal", 45, -810, 300, 45), ui.OpenJournal);
 
         var journalPage = ui.transform.Find("JournalPanel/JournalWindow");
-        Wire(Button(journalPage, "CalendarShortcut", "Calendar", 60, -770, 175, 65), room.OpenCalendar);
-        Wire(Button(journalPage, "FridgeShortcut", "Fridge", 250, -770, 155, 65), room.OpenFridge);
-        room.tipButton = Button(journalPage, "TipButton", "Why it matters", 420, -770, 240, 65); Wire(room.tipButton, room.OpenTip);
+        Wire(Button(journalPage, "CalendarShortcut", "Calendar", 60, -770, 145, 65), room.OpenCalendar);
+        Wire(Button(journalPage, "FridgeShortcut", "Fridge", 215, -770, 120, 65), room.OpenFridge);
+        Wire(Button(journalPage, "MoneyTrackerShortcut", "Money Tracker", 345, -770, 210, 65), ui.OpenLedger);
+        room.tipButton = Button(journalPage, "TipButton", "Why it matters", 565, -770, 200, 65); Wire(room.tipButton, room.OpenTip);
         Place((RectTransform)journalPage.Find("FooterNote"), 60, -855, 970, 35);
         journalPage.Find("FooterNote").GetComponent<TMP_Text>().fontSize = 20;
         ui.ApplyMoneyTrackerLabels(); room.ApplyPresentation();
         overlay.gameObject.SetActive(false); info.gameObject.SetActive(false);
+
+
+        var tutorial = ui.GetComponent<OpeningTutorial>() ?? Undo.AddComponent<OpeningTutorial>(ui.gameObject);
+        tutorial.game = g;
+        var welcome = Rect(ui.transform, "OpeningTutorialPanel"); Stretch(welcome);
+        Paint(welcome, new Color(0, 0, 0, .82f)); welcome.SetAsLastSibling();
+        tutorial.panel = welcome.gameObject;
+        var welcomePage = Rect(welcome, "Page"); Centre(welcomePage, 1200, 940); Paint(welcomePage, Paper);
+        Label(welcomePage, "Title", "WELCOME TO YOUR NEW PLACE", 38, 60, -40, 820, 65);
+        Label(welcomePage, "Intro",
+            "You're a university student living on your own abroad. Your family sends you a weekly allowance. Your landlord collects weekly rent. Neither has agreed to coordinate.\n\n" +
+            "Your goal: <b>make it through 30 days</b>, pay your bills, and look after yourself.", 28, 60, -125, 1080, 210);
+        Label(welcomePage, "Tools",
+            "<b>Fridge:</b> Check your food supply. Stored meals cover your daily food costs, but other essentials still cost money.\n\n" +
+            "<b>Calendar:</b> Check important dates, including rent, allowance payments, and your friend's birthday.\n\n" +
+            "<b>Money Tracker:</b> Review every payment, check upcoming bills, and set aside money for rent.\n\n" +
+            "<b>Journal:</b> Read today's events, make choices, and end the day. Some choices affect you later.", 27, 60, -350, 1080, 360);
+        Label(welcomePage, "Reminder",
+            "Keep an eye on your cash, food, and how you're feeling. Tomorrow's money cannot pay today's rent.", 26, 60, -740, 1080, 80);
+        Wire(Button(welcomePage, "Continue", "LET'S TRY THIS", 400, -840, 400, 65), tutorial.Continue);
+        Wire(Button(welcomePage, "SkipTutorial", "Skip tutorial", 930, -45, 220, 55), tutorial.Continue);
+        welcome.gameObject.SetActive(false); EditorUtility.SetDirty(tutorial);
+
         EditorUtility.SetDirty(room); EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene); AssetDatabase.SaveAssets();
         Debug.Log("ROOM_INSTALL_OK: illustrated room, object hotspots, calendar, fridge, strategy events and optional explanations.");
     }

@@ -12,6 +12,12 @@ public sealed class MoodSystem : MonoBehaviour
     public int Lowest { get; private set; }
     public int LastWorkDay { get; private set; } = -10000;
     public bool IsLow => Value <= warningLevel;
+    public int FaceIndex => FaceIndexFor(Value);
+    public string Status => StatusFor(Value);
+    // Happy, calm, tired, exhausted; the number remains an internal rule only.
+    public static int FaceIndexFor(int value) => value >= 80 ? 0 : value >= 60 ? 1 : value >= 40 ? 2 : 3;
+    public static string StatusFor(int value) => FaceIndexFor(value) switch
+    { 0 => "Happy", 1 => "Calm", 2 => "Tired", _ => "Exhausted" };
     public void ResetRun()
     {
         Value = Mathf.Clamp(startingMood, 1, 100);

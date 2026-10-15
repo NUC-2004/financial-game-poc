@@ -5,7 +5,7 @@ using UnityEngine;
 public enum StrategyAction
 {
     None, Cash20, Cash40, Card, EatFirst, ShopHungry, CheckStock, WriteList,
-    WaitPurchase, BuyNow, SetReminder, NoReminder, Reserve20, Reserve40, NoReserve
+    WaitPurchase, BuyNow, SetReminder, NoReminder, Reserve20, Reserve40, NoReserve, BuySnackPlan
 }
 
 [DisallowMultipleComponent]
@@ -85,8 +85,41 @@ public sealed class StrategySystem : MonoBehaviour
             Choice("Plan to keep $40", "Target updated. Check the calendar before treating it as spare money.", StrategyAction.Reserve40),
             Choice("Plan to keep $20", "A smaller target. Your bills still need their own budget.", StrategyAction.Reserve20),
             Choice("Keep funds unallocated", "No buffer earmarked. No money has moved.", StrategyAction.NoReserve)));
+        ApplySnackOffer(events);
+        ApplyGroceryContexts(events);
         events.Sort((a, b) => a.day.CompareTo(b.day));
         return events;
+    }
+    public static void ApplyGroceryContexts(List<ScheduledFinancialEvent> events)
+    {
+        foreach (var e in events)
+        {
+            if (e.id == "shop_1")
+            {
+                e.title = "BEFORE THE FIRST RENT";
+                e.body = "The large pack says VALUE. Your landlord says TUESDAY.\nCompare the food you need with the cash you must keep. Groceries are available through journal events; an empty fridge costs $20 per day.";
+            }
+            else if (e.id == "shop_8")
+            {
+                e.title = "ALLOWANCE DAY, GROCERY DAY";
+                e.body = "Your family allowance has arrived. A six-day pack is on offer.\nCheck the fridge and the next rent date before treating it all as spare money. Buying nothing means paying for food day by day when your fridge is empty.";
+            }
+            else if (e.id == "shop_23")
+            {
+                e.title = "DIDN'T YOU JUST BUY FOOD?";
+                e.body = "Another large-pack offer. There may still be food from your last shop.\nCount what is stored before buying more. The fridge shows your current stock. No purchase means normal daily food charges.";
+            }
+        }
+    }
+    public static void ApplySnackOffer(List<ScheduledFinancialEvent> events)
+    {
+        events.RemoveAll(e => e.id == "snack_plan");
+        events.Add(Event(11, "snack_plan", "A BARGAIN. WITH TIMING.",
+            "A snack-box plan costs $36 today. From tomorrow, it cuts food charges by $3 per day for 15 calendar days ($20 to $17).\nStored-meal days save nothing extra; unused days expire. No renewal.\nRent is tomorrow. The landlord does not accept future savings.", "liquidity",
+            Choice("Buy the 15-day plan", "Paid $36. Savings start tomorrow, only on days you pay for food. Rent still needs cash.", StrategyAction.BuySnackPlan, 36),
+            Choice("Keep cash for rent", "No purchase. A bargain can wait. Rent rarely does."),
+            Choice("Pass: use stored meals", "No purchase. Stored meals still cover food; empty-fridge days still cost $20.")));
+        events.Sort((a, b) => a.day.CompareTo(b.day));
     }
     public ScheduledFinancialEvent OverrideDay(int day)
     {
@@ -128,18 +161,20 @@ public sealed class StrategySystem : MonoBehaviour
     }
     public static string TipTitle(string key) => key switch
     {
+        "liquidity" => "SAVINGS LATER, BILLS NOW",
         "cash" => "PAYMENT & SPENDING LIMITS", "hunger" => "NOTICE YOUR SHOPPING STATE",
         "list" => "CHECK STOCK, THEN MAKE A LIST", "unit" => "COMPARE UNIT COST",
         "pause" => "PAUSE BEFORE A PURCHASE", "reminder" => "REMINDERS NEED ACTION", _ => "PLAN AHEAD"
     };
     public static string Tip(string key) => key switch
     {
+        "liquidity" => "Budgeting guidance recommends checking payment dates as well as total costs.\n\nThis offer costs $36 upfront and saves at most $45 over 15 days. It needs 12 charged food days just to recover the price. Stored-meal days do not earn another $3. Future savings cannot pay tomorrow's rent. These amounts are game rules, not a research finding about snacks.",
         "cash" => "Research shows that people tend to spend slightly more with cashless payments, on average. Cash does not guarantee lower spending.\n\nSet a trip budget, then compare it with what you actually buy.",
         "hunger" => "Research shows that hunger can increase the desire to acquire things, including nonfood items.\n\nBefore paying, check which items you planned to buy and which ones you added along the way.",
         "list" => "Budgeting guidance recommends checking your supplies and writing a shopping list.\n\nFood days needed minus food already stored tells you how much more to buy.",
         "unit" => "Budgeting guidance recommends comparing unit prices.\n\nDivide the price by the food days provided. A larger pack may cost less per day, but check what you need and whether you can still pay rent.",
         "pause" => "Budgeting guidance recommends taking time to check whether you need a purchase and can afford it.\n\nWaiting gives you time to think. It does not guarantee a discount or mean you must give up the item.",
         "reminder" => "Research shows that reminders can help some savers reach their goals.\n\nA reminder brings your plan back to your attention. You still need to set money aside, and earmarked money can still be spent.",
-        _ => "Check your income dates, necessary costs and mood before committing. Pending income is not spendable cash.\n\nWorking again within four days costs an extra 6 mood. Rest and recovery activities clear this penalty; buying things does not. Mood does not drop automatically each day."
+        _ => "Check your income dates, necessary costs and how you feel before committing. Pending income is not spendable cash.\n\nWorking again soon is more tiring. Rest and recovery activities break this work streak; buying things does not. Your condition does not worsen automatically each day."
     };
 }
