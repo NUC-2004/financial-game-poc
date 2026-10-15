@@ -24,7 +24,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private TMP_Text statusText;
     [SerializeField] private TMP_Text moodText;
     [SerializeField] private Slider moodBar;
-    [Header("Ledger")]
+    [Header("Money Tracker")]
     [SerializeField] private TMP_Text agendaText;
     [SerializeField] private TMP_Text transactionsText;
     [SerializeField] private ScrollRect transactionScroll;
@@ -51,10 +51,25 @@ public class GameUI : MonoBehaviour
             enabled = false;
             return;
         }
+        ApplyMoneyTrackerLabels();
         ledgerPanel.SetActive(false);
         journalPanel.SetActive(false);
         if (startRunOnPlay && !game.HasStarted) game.StartRandomRun();
         else Refresh();
+    }
+
+    public void ApplyMoneyTrackerLabels()
+    {
+        var title = transform.Find("LedgerPanel/BookWindow/TitleText");
+        if (title != null) title.GetComponent<TMP_Text>().text = "INCOME & EXPENSES";
+        var tag = transform.Find("GamePanel/IllustratedRoom/LedgerHotspot/Tag");
+        if (tag != null)
+        {
+            ((RectTransform)tag).sizeDelta = new Vector2(250, 42);
+            tag.GetComponentInChildren<TMP_Text>(true).text = "MONEY TRACKER";
+        }
+        var oldButton = transform.Find("GamePanel/LedgerButton");
+        if (oldButton != null) oldButton.GetComponentInChildren<TMP_Text>(true).text = "Money Tracker";
     }
 
     public void StartRandomRun()
@@ -155,9 +170,9 @@ public class GameUI : MonoBehaviour
         endDayButton.gameObject.SetActive(!game.HasEnded);
         endDayButton.interactable = !game.HasPendingChoice;
         newRunButton.gameObject.SetActive(game.HasEnded);
-        journalFooterText.text = game.HasEnded ? "Your ledger keeps the full story."
+        journalFooterText.text = game.HasEnded ? "Your money tracker keeps the full story."
             : game.Mood.IsLow ? "LOW MOOD: check recovery choices. Reaching 0 ends the run."
-            : game.HasPendingChoice ? "Choose a response. You can check your ledger first."
+            : game.HasPendingChoice ? "Choose a response. You can check your money tracker first."
             : "Living costs, then any rent due, are paid at End Day.";
         journalFinanceText.text = $"CASH ${economy.Balance:N0} | MOOD {game.Mood.Value}/100 | FOOD {game.FoodDays} days | LIVING ${game.LivingCostToday}\n" +
             $"RENT ${game.RentCost}: {ShortDate(game.NextRentDate)}" +
@@ -182,7 +197,7 @@ public class GameUI : MonoBehaviour
         {
             journalTitleText.text = game.Completed ? "Run complete" : "Run ended";
             journalBodyText.text = game.EndingMessage +
-                "\n\nOpen the ledger to review your spending and decisions.";
+                "\n\nOpen the money tracker to review your spending and decisions.";
             return;
         }
         journalTitleText.text = $"Day {game.DayNumber} / {Date(game.CurrentDate)}";

@@ -134,12 +134,12 @@ public sealed class StrategySystem : MonoBehaviour
     };
     public static string Tip(string key) => key switch
     {
-        "cash" => "Compare your trip budget with what you actually bought.\n\nA 2024 meta-analysis found a small average increase in spending with cashless payments. This does not mean cash always works better. Here, the cash cap is an explicit game rule; payment method never adds a hidden fee.\n\nSchomburgk, Belli & Hoffmann (2024), Journal of Retailing. DOI: 10.1016/j.jretai.2024.05.003",
-        "hunger" => "Which items were planned before you entered the shop?\n\nXu, Schwarz & Wyer (2015) found that hunger can increase acquisition of food and nonfood items. The study does not guarantee that eating first saves a fixed amount. In this game, you remain in control of each purchase.\n\nPNAS. DOI: 10.1073/pnas.1417712112",
-        "list" => "Needed food days - food already stored = your shopping shortfall.\n\nChecking inventory and writing a list can keep the trip focused on actual needs. These are professional budgeting suggestions, not a guaranteed saving percentage.\n\nASIC Moneysmart: Ways to save on food and fuel.",
-        "unit" => "Divide total price by the food days provided. Then check whether you need them and can afford the upfront payment.\n\nA lower unit price does not automatically make a larger purchase suitable before rent. Food portions and prices here are fictional.\n\nASIC Moneysmart: Ways to save on food and fuel.",
-        "pause" => "Before buying, check: Do I need it? Can I afford it after upcoming bills?\n\nWaiting gives you another decision point. It does not promise a lower price or require you to reject the purchase. The one-day wait is our game rule.\n\nASIC Moneysmart: Avoiding sales pressure.",
-        "reminder" => "A reminder brings the goal back to your attention; it does not move money for you. Earmarked money remains part of your balance and can still be spent.\n\nKarlan et al. (2016) found reminders improved goal attainment among certain bank savings-account customers. That does not establish the same effect for student players.\n\nManagement Science. DOI: 10.1287/mnsc.2015.2296",
+        "cash" => "Research shows that people tend to spend slightly more with cashless payments, on average. Cash does not guarantee lower spending.\n\nSet a trip budget, then compare it with what you actually buy.",
+        "hunger" => "Research shows that hunger can increase the desire to acquire things, including nonfood items.\n\nBefore paying, check which items you planned to buy and which ones you added along the way.",
+        "list" => "Budgeting guidance recommends checking your supplies and writing a shopping list.\n\nFood days needed minus food already stored tells you how much more to buy.",
+        "unit" => "Budgeting guidance recommends comparing unit prices.\n\nDivide the price by the food days provided. A larger pack may cost less per day, but check what you need and whether you can still pay rent.",
+        "pause" => "Budgeting guidance recommends taking time to check whether you need a purchase and can afford it.\n\nWaiting gives you time to think. It does not guarantee a discount or mean you must give up the item.",
+        "reminder" => "Research shows that reminders can help some savers reach their goals.\n\nA reminder brings your plan back to your attention. You still need to set money aside, and earmarked money can still be spent.",
         _ => "Check your income dates, necessary costs and mood before committing. Pending income is not spendable cash."
     };
 }

@@ -9,6 +9,40 @@ using UnityEngine.UI;
 public static class RoomValidation
 {
     private static void Check(bool condition, string message) { if (!condition) throw new Exception("ROOM TEST: " + message); }
+    public static void CalendarAppointments()
+    {
+        var holder = new GameObject("Calendar tests") { hideFlags = HideFlags.HideAndDontSave };
+        try
+        {
+            var g = holder.AddComponent<GameManager>();
+            holder.GetComponent<GameEventSchedule>().events = StrategySystem.CreateSchedule();
+            Check(g.StartRun(0), "Calendar fixture starts");
+            var room = holder.AddComponent<RoomInterface>(); room.game = g;
+            var start = g.CurrentDate;
+            foreach (bool compact in new[] { false, true })
+            {
+                Check(room.Entries(start.AddDays(2), compact).Count == 0, "Future job stays hidden");
+                Check(room.Entries(start.AddDays(1), compact).Count == 0, "Future market stays hidden");
+                Check(room.Entries(start.AddDays(8), compact).Count == 0, "Future sale stays hidden");
+                Check(room.Entries(start.AddDays(11), compact).Count == 2, "Rent and birthday remain visible");
+                Check(room.Entries(start.AddDays(7), compact).Count == 1, "Only wages visible on shopping day");
+            }
+            Check(room.Entries(start.AddDays(15)).Count == 0, "Reminder absent before requested");
+            g.Strategies.Apply(StrategyAction.SetReminder);
+            Check(room.Entries(start.AddDays(15), true).Contains("REMINDER"), "Player-requested reminder visible");
+            g.Strategies.Apply(StrategyAction.WaitPurchase);
+            Check(room.Entries(start.AddDays(9)).SequenceEqual(new[] { "Revisit your headphone wishlist" }), "Wishlist does not reveal job");
+            while (g.DayNumber < 3)
+            {
+                if (g.HasPendingChoice) g.TryChooseEvent(g.CurrentEvent.Id, PlannedChoice(g));
+                else g.EndDay();
+            }
+            Check(g.TryChooseEvent(g.CurrentEvent.Id, 1), "Accept delayed job");
+            Check(room.Entries(start.AddDays(5)).Any(e => e.Contains("Confirmed income +$140")), "Confirmed income visible after choice");
+            Debug.Log("CALENDAR_APPOINTMENTS_PASSED: known dates retained; future encounters hidden; personal reminders and confirmed income visible.");
+        }
+        finally { UnityEngine.Object.DestroyImmediate(holder); }
+    }
     public static int PlannedChoice(GameManager g)
     {
         string id = g.CurrentEvent.Id;

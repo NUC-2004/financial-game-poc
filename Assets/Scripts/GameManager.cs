@@ -68,7 +68,7 @@ public partial class GameManager : MonoBehaviour
         EndingMessage = ""; FailureReason = "";
         OpeningBalance = rules.openingBalances[openingIndex];
         mood.ResetRun(); Strategies.ResetRun(); AteTodaysMeal = false;
-        LastSettlement = "A new month. Same landlord. Check the ledger before spending.";
+        LastSettlement = "A new month. Same landlord. Check the money tracker before spending.";
         economy.StartNewAccount(CurrentDate, OpeningBalance);
         ResetEvents(); StateChanged?.Invoke(); return true;
     }

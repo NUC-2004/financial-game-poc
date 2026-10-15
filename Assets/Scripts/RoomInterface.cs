@@ -31,7 +31,28 @@ public sealed class RoomInterface : MonoBehaviour
     private static readonly CultureInfo English = CultureInfo.GetCultureInfo("en-AU");
     private void OnEnable() { if (game != null) game.StateChanged += Refresh; }
     private void OnDisable() { if (game != null) game.StateChanged -= Refresh; }
-    private void Start() { ClosePanels(); Refresh(); }
+    private void Start() { ApplyPresentation(); ClosePanels(); Refresh(); }
+    public void ApplyPresentation()
+    {
+        var canvas = GetComponent<Canvas>();
+        if (canvas != null) canvas.pixelPerfect = true;
+        var root = transform.Find("GamePanel/IllustratedRoom") as RectTransform;
+        if (root == null) return;
+        // Fill the available window. Hotspots share the image's normalized coordinates.
+        var fit = root.GetComponent<AspectRatioFitter>();
+        if (fit != null) { fit.aspectMode = AspectRatioFitter.AspectMode.None; fit.enabled = false; }
+        root.anchorMin = Vector2.zero; root.anchorMax = Vector2.one;
+        root.pivot = new Vector2(.5f, .5f); root.offsetMin = root.offsetMax = Vector2.zero;
+        root.localScale = Vector3.one;
+        foreach (var label in root.GetComponentsInChildren<TMP_Text>(true))
+        {
+            float size = label.name == "BalanceText" ? 34 : label.name == "DateText" || label.name == "DataText" ? 30
+                : label.name == "MoodText" ? 30 : label.name == "NextBill" ? 27 : label.name == "RoomHint" ? 22 : 26;
+            label.fontSize = size; label.enableAutoSizing = true;
+            label.fontSizeMin = label.name == "RoomHint" ? 18 : 22; label.fontSizeMax = size;
+            label.fontStyle = label.name == "Label" ? FontStyles.Bold : FontStyles.Normal;
+        }
+    }
     public void ClosePanels()
     {
         calendarPanel.SetActive(false); infoPanel.SetActive(false);
@@ -57,10 +78,9 @@ public sealed class RoomInterface : MonoBehaviour
     }
     public void OpenTip()
     {
-        if (!game.HasStarted) return;
+        if (!game.HasStarted || game.HasEnded || game.CurrentEvent == null) return;
         HideBooks(); infoMode = "tip"; infoPanel.SetActive(true); returnJournalButton.gameObject.SetActive(true);
-        string key = game.CurrentEvent?.TipKey;
-        if (string.IsNullOrEmpty(key)) key = game.LastTipKey;
+        string key = game.CurrentEvent.TipKey;
         infoTitle.text = StrategySystem.TipTitle(key);
         infoBody.text = StrategySystem.Tip(key);
         ResetInfoScroll();
@@ -88,7 +108,7 @@ public sealed class RoomInterface : MonoBehaviour
         journalLabel.text = game.HasEnded ? "REVIEW RUN" : game.HasPendingChoice ? "JOURNAL  /  NEW" : "DAILY JOURNAL";
         if (calendarPanel.activeSelf) RefreshCalendar();
         if (infoPanel.activeSelf && infoMode == "fridge") RefreshFridge();
-        tipButton.gameObject.SetActive(game.CurrentEvent != null || !string.IsNullOrEmpty(game.LastTipKey));
+        tipButton.gameObject.SetActive(!game.HasEnded && game.CurrentEvent != null);
     }
     public List<string> Entries(DateTime date, bool compact = false)
     {
@@ -102,10 +122,11 @@ public sealed class RoomInterface : MonoBehaviour
             list.Add(compact ? "WAGES" : $"Regular wages: +${game.SalaryAmount} in the morning");
         if (day <= game.TotalDays)
         {
-            var e = game.Schedule.ForDay(day);
-            if (e != null) list.Add(compact ? (e.id == "birthday" ? "BIRTHDAY" : "EVENT") : (e.id == "birthday" ? "Alex's birthday" : e.title));
+            // An internal event date is not an appointment known to the player.
+            if (game.Schedule.events.Any(e => e.id == "birthday" && e.day == day))
+                list.Add(compact ? "BIRTHDAY" : "Alex's birthday");
             if (day == 16 && game.Strategies.ReminderSet) list.Add(compact ? "REMINDER" : "Reminder: review your $40 emergency-buffer goal");
-            if (day == 10 && game.Strategies.WaitingForPurchase) list.Add(compact ? "WISHLIST" : "Revisit headphone wishlist after today's job decision");
+            if (day == 10 && game.Strategies.WaitingForPurchase) list.Add(compact ? "WISHLIST" : "Revisit your headphone wishlist");
         }
         foreach (var p in game.PendingPayments.Where(p => p.Date.Date == date.Date))
             list.Add(compact ? "+$" + p.Amount : $"Confirmed income +${p.Amount}: {p.Description}");

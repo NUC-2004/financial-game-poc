@@ -34,7 +34,7 @@ public static class RoomUpgrade
         main.GetComponent<Image>().color = new Color32(24, 25, 25, 255);
         var root = Rect(main, "IllustratedRoom"); Stretch(root);
         var fit = Ensure<AspectRatioFitter>(root.gameObject);
-        fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent; fit.aspectRatio = 16f / 9;
+        fit.aspectMode = AspectRatioFitter.AspectMode.None; fit.enabled = false; Stretch(root);
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/StudentRoom.png");
         if (!texture) throw new InvalidOperationException("Room texture is missing.");
         var importer = (TextureImporter)AssetImporter.GetAtPath("Assets/Art/StudentRoom.png");
@@ -61,7 +61,7 @@ public static class RoomUpgrade
         var fridge = Hotspot(root, "FridgeHotspot", "FRIDGE", .115f, .25f, .255f, .79f, room.OpenFridge);
         room.fridgeLabel = fridge.GetComponentInChildren<TMP_Text>();
         Hotspot(root, "CalendarHotspot", "CALENDAR", .485f, .60f, .61f, .78f, room.OpenCalendar);
-        Hotspot(root, "LedgerHotspot", "LEDGER", .52f, .475f, .585f, .535f, ui.OpenLedger);
+        Hotspot(root, "LedgerHotspot", "MONEY TRACKER", .52f, .475f, .585f, .535f, ui.OpenLedger);
         var journal = Hotspot(root, "JournalHotspot", "DAILY JOURNAL", .79f, .21f, .94f, .33f, ui.OpenJournal);
         room.journalLabel = journal.GetComponentInChildren<TMP_Text>();
 
@@ -110,6 +110,7 @@ public static class RoomUpgrade
         room.tipButton = Button(journalPage, "TipButton", "Why it matters", 420, -770, 240, 65); Wire(room.tipButton, room.OpenTip);
         Place((RectTransform)journalPage.Find("FooterNote"), 60, -855, 970, 35);
         journalPage.Find("FooterNote").GetComponent<TMP_Text>().fontSize = 20;
+        ui.ApplyMoneyTrackerLabels(); room.ApplyPresentation();
         overlay.gameObject.SetActive(false); info.gameObject.SetActive(false);
         EditorUtility.SetDirty(room); EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene); AssetDatabase.SaveAssets();
         Debug.Log("ROOM_INSTALL_OK: illustrated room, object hotspots, calendar, fridge, strategy events and optional explanations.");
@@ -125,7 +126,7 @@ public static class RoomUpgrade
         var colors = b.colors; colors.normalColor = new Color(1, 1, 1, 0); colors.highlightedColor = new Color(1, .92f, .7f, .2f);
         colors.pressedColor = new Color(1, .92f, .7f, .35f); colors.selectedColor = new Color(1, 1, 1, 0); b.colors = colors;
         var tag = Rect(r, "Tag"); tag.anchorMin = tag.anchorMax = new Vector2(.5f, 0); tag.pivot = new Vector2(.5f, 1);
-        tag.anchoredPosition = new Vector2(0, -6); tag.sizeDelta = new Vector2(name == "LedgerHotspot" ? 155 : 250, 42);
+        tag.anchoredPosition = new Vector2(0, -6); tag.sizeDelta = new Vector2(250, 42);
         // The caption also routes clicks to the parent hotspot.
         Paint(tag, new Color(.1f, .13f, .11f, .92f), true);
         var label = Text(tag, "Label", caption, 23, Paper); Stretch(label.rectTransform); label.alignment = TextAlignmentOptions.Center;
