@@ -13,12 +13,14 @@ public sealed class FinancialChoice
     [Min(0)] public int delayDays;
     [Range(-100, 100)] public int mood;
     public bool isWork;
+    [Tooltip("A rest/recovery activity; clears the repeat-work penalty. Shopping does not.")]
+    public bool isRecovery;
     public StrategyAction action;
     public FinancialChoice(string label, string result, int cost = 0, int food = 0,
-        int income = 0, int delay = 0, int mood = 0, bool work = false)
+        int income = 0, int delay = 0, int mood = 0, bool work = false, bool recovery = false)
     {
         this.label = label; this.result = result; this.cost = cost; foodDays = food;
-        this.income = income; delayDays = delay; this.mood = mood; isWork = work;
+        this.income = income; delayDays = delay; this.mood = mood; isWork = work; isRecovery = recovery;
     }
 }
 
@@ -40,6 +42,7 @@ public sealed class GameEventSchedule : MonoBehaviour
 {
     [Tooltip("One event per day; exactly three choices. Edit amounts here, not in button text.")]
     public List<ScheduledFinancialEvent> events = Defaults();
+    [HideInInspector] public int balanceRevision;
     public ScheduledFinancialEvent ForDay(int day) => events.Find(e => e.day == day);
     public IEnumerable<ScheduledFinancialEvent> Upcoming(int day) => events.FindAll(e => e.day > day);
 
@@ -72,28 +75,28 @@ public sealed class GameEventSchedule : MonoBehaviour
         new FinancialChoice("Keep the cash", "No groceries added. Empty shelves do not cancel daily food costs."));
     private static ScheduledFinancialEvent Work(int day, string title, string body) => new ScheduledFinancialEvent(
         day, "work_" + day, title, body + "\n\nOnly one booking fits today. Quick jobs pay less, today. Longer shifts pay more, three days later. Check rent before choosing.",
-        new FinancialChoice("Take the quick job", "Paid today. Your feet would also like compensation.", income: 80, mood: -10, work: true),
-        new FinancialChoice("Take the longer shift", "Payment is confirmed. Unfortunately, confirmed is not cash.", income: 140, delay: 3, mood: -18, work: true),
-        new FinancialChoice("Take a free afternoon", "You sit down. Nothing asks for your card details.", mood: 12));
+        new FinancialChoice("Take the quick job", "Paid today. Your feet would also like compensation.", income: 90, mood: -12, work: true),
+        new FinancialChoice("Take the longer shift", "Payment is confirmed. Unfortunately, confirmed is not cash.", income: 160, delay: 3, mood: -24, work: true),
+        new FinancialChoice("Take a free afternoon", "You sit down. Nothing asks for your card details.", mood: 8, recovery: true));
     public static List<ScheduledFinancialEvent> Defaults() => new List<ScheduledFinancialEvent>
     {
         Shop(1, 64, 4),
         Work(3, "HELP WANTED", "Two jobs need filling. You had planned to do nothing. Apparently that position is unpaid."),
         Work(7, "WEEKEND PLANS", "Your manager asks if you are free. This is not an invitation to lunch."),
-        Shop(8, 64, 4),
+        Shop(8, 90, 6),
         Work(10, "ONE MORE SHIFT", "Another shift is available. Your bank account says yes. Check with the rest of you."),
         new ScheduledFinancialEvent(12, "birthday", "CAKE AND RENT", "Alex's birthday is today. So is rent. Only one of them accepts cake.\n\nChoose a plan you can afford after tonight's essentials and rent.",
-            new FinancialChoice("Dinner with friends", "Dinner was good. The bill was very confident.", 35, 1, mood: 24),
-            new FinancialChoice("Bring a dish", "Pasta in, leftovers out. A rare successful group project.", 20, 2, mood: 12),
-            new FinancialChoice("Call, then rest at home", "You catch up by phone. Friendship survives the lack of a booking fee.", mood: 6)),
+            new FinancialChoice("Dinner with friends", "Dinner was good. The bill was very confident.", 35, 1, mood: 30, recovery: true),
+            new FinancialChoice("Bring a dish", "Pasta in, leftovers out. A rare successful group project.", 20, 2, mood: 16, recovery: true),
+            new FinancialChoice("Call, then rest at home", "You catch up by phone. Friendship survives the lack of a booking fee.", mood: 5, recovery: true)),
         Shop(15, 64, 4),
-        Work(17, "PAYDAY IS NOT TODAY", "The events team needs help. Their payment system believes in suspense."),
+        Work(17, "THE PAYMENT TAKES ITS TIME", "The events team needs help. Their payment system believes in suspense."),
         Work(21, "SUNDAY SERVICE", "The cafe is short-staffed again. Apparently this is a tradition."),
         Shop(23, 80, 5),
         new ScheduledFinancialEvent(25, "recharge", "LEAVE THE HOUSE?", "Your friends have three plans. Your budget has opinions.\n\nRent is tomorrow. Recovery breaks the extra-work penalty streak, even when the activity is free.",
-            new FinancialChoice("Meal and a movie", "Two hours without checking your balance. It was still there afterwards.", 35, 1, mood: 24),
-            new FinancialChoice("Shared lunch at home", "Everyone brought something. Someone even brought a container back.", 20, 2, mood: 12),
-            new FinancialChoice("Free walk and a chat", "Fresh air remains free. Management is investigating.", mood: 6)),
+            new FinancialChoice("Meal and a movie", "Two hours without checking your balance. It was still there afterwards.", 35, 1, mood: 30, recovery: true),
+            new FinancialChoice("Shared lunch at home", "Everyone brought something. Someone even brought a container back.", 20, 2, mood: 16, recovery: true),
+            new FinancialChoice("Free walk and a chat", "Fresh air remains free. Management is investigating.", mood: 5, recovery: true)),
         Work(27, "THE LAST BOOKING", "One final shift this month. Next month has already started sending emails.")
     };
 }

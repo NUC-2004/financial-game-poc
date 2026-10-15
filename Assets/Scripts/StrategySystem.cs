@@ -69,7 +69,7 @@ public sealed class StrategySystem : MonoBehaviour
             Choice("Eat a stored meal first", "Today's meal eaten. It will not be charged again tonight.", StrategyAction.EatFirst),
             Choice("Go straight to the shop", "You head out hungry. Check the basket before paying.", StrategyAction.ShopHungry),
             Choice("Stay home today", "No shopping. Normal meal settlement still applies tonight.")));
-        events.Add(Event(6, "reminder_setup", "FUTURE YOU CALLED", "Set a $40 emergency-buffer goal for Day 24.\nWould a reminder after your next payday help?", "reminder",
+        events.Add(Event(6, "reminder_setup", "FUTURE YOU CALLED", "Set a $40 emergency-buffer goal for Day 24.\nWould a reminder after your next allowance payment help?", "reminder",
             Choice("Remind me on Day 16", "Reminder added to your calendar. It will not save money for you.", StrategyAction.SetReminder),
             Choice("Plan to keep $40 now", "A $40 target is noted. This is not a transfer or a spending lock.", StrategyAction.Reserve40),
             Choice("Keep the goal, no reminder", "Goal noted. You can review it on Day 24.", StrategyAction.NoReminder)));
@@ -93,7 +93,7 @@ public sealed class StrategySystem : MonoBehaviour
         if (day == 10 && WaitingForPurchase)
             return null; // Wishlist follow-up is inserted after today's scheduled job, so neither disappears.
         if (day == 16 && ReminderSet)
-            return Event(day, "reminder", "THE REMINDER YOU ASKED FOR", "Yesterday's regular wages have arrived.\nYour goal is a $40 buffer by Day 24. Decide what to earmark.", "reminder",
+            return Event(day, "reminder", "THE REMINDER YOU ASKED FOR", "Yesterday's family allowance has arrived.\nYour goal is a $40 buffer by Day 24. Decide what to earmark.", "reminder",
                 Choice("Earmark $40", "A $40 plan, not a second bank balance.", StrategyAction.Reserve40),
                 Choice("Earmark $20", "A $20 plan. You can revise it on Day 24.", StrategyAction.Reserve20),
                 Choice("Not this time", "Reminder read. Nothing saved automatically.", StrategyAction.NoReserve));
@@ -140,6 +140,6 @@ public sealed class StrategySystem : MonoBehaviour
         "unit" => "Budgeting guidance recommends comparing unit prices.\n\nDivide the price by the food days provided. A larger pack may cost less per day, but check what you need and whether you can still pay rent.",
         "pause" => "Budgeting guidance recommends taking time to check whether you need a purchase and can afford it.\n\nWaiting gives you time to think. It does not guarantee a discount or mean you must give up the item.",
         "reminder" => "Research shows that reminders can help some savers reach their goals.\n\nA reminder brings your plan back to your attention. You still need to set money aside, and earmarked money can still be spent.",
-        _ => "Check your income dates, necessary costs and mood before committing. Pending income is not spendable cash."
+        _ => "Check your income dates, necessary costs and mood before committing. Pending income is not spendable cash.\n\nWorking again within four days costs an extra 6 mood. Rest and recovery activities clear this penalty; buying things does not. Mood does not drop automatically each day."
     };
 }

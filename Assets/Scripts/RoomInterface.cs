@@ -119,7 +119,7 @@ public sealed class RoomInterface : MonoBehaviour
         if (day >= game.Rules.firstRentDay && (day - game.Rules.firstRentDay) % game.Rules.rentInterval == 0)
             list.Add(compact ? "RENT" : $"Rent: -${game.RentCost} after living costs");
         if (day >= game.Rules.firstPayDay && (day - game.Rules.firstPayDay) % game.Rules.payInterval == 0)
-            list.Add(compact ? "WAGES" : $"Regular wages: +${game.SalaryAmount} in the morning");
+            list.Add(compact ? "ALLOWANCE" : $"Family allowance: +${game.SalaryAmount} in the morning");
         if (day <= game.TotalDays)
         {
             // An internal event date is not an appointment known to the player.

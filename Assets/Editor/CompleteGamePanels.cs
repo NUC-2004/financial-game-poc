@@ -40,7 +40,7 @@ public static class CompleteGamePanels
         var ledger = Child(canvas.transform, "LedgerPanel"); Overlay(ledger);
         var book = Child(ledger, "BookWindow"); Centre(book, 1500, 880); Paint(book, Paper);
         Label(book, "TitleText", "INCOME & EXPENSES", 40, 50, -30, 1100, 70);
-        var agenda = Label(book, "AgendaText", "<b>UPCOMING & RECENT</b>\n\n15 Sep / Rent: $500\n\n18 Sep / Wages due: +$700\n\n15 Sep / Friend's birthday\nUpcoming\n\n<b>DAILY COSTS</b>\n\nFood: $20 without stored groceries\nOther essentials: $10\n\nYour completed transactions will\nappear on the right during play.", 24, 50, -130, 520, 680);
+        var agenda = Label(book, "AgendaText", "<b>UPCOMING & RECENT</b>\n\n15 Sep / Rent: $500\n\n18 Sep / Family allowance: +$700\n\n15 Sep / Friend's birthday\nUpcoming\n\n<b>DAILY COSTS</b>\n\nFood: $20 without stored groceries\nOther essentials: $10\n\nYour completed transactions will\nappear on the right during play.", 24, 50, -130, 520, 680);
         var divider = Child(book, "PageDivider"); TopLeft(divider, 600, -130, 2, 680); Paint(divider, new Color32(192, 176, 146, 255));
         divider.GetComponent<Image>().raycastTarget = false;
         Label(book, "HistoryHeading", "TRANSACTIONS / NEWEST FIRST", 23, 640, -100, 750, 35);
@@ -88,7 +88,7 @@ public static class CompleteGamePanels
         var journal = Child(canvas.transform, "JournalPanel"); Overlay(journal);
         var page = Child(journal, "JournalWindow"); Centre(page, 1100, 900); Paint(page, Paper);
         var title = Label(page, "JournalTitleText", "Day 1 / 11 Sep 2026", 38, 60, -40, 760, 70);
-        var body = Label(page, "JournalBodyText", "<b>TODAY'S NOTE</b>\n\nCheck your balance and upcoming commitments before ending the day.\n\nNext rent: $500 on 15 Sep.\nNext wages: +$700 on 18 Sep.\n\n<b>AT THE END OF TODAY</b>\nFood: $20 without stored groceries.\nOther essentials: $10.\n\nLiving costs are paid first, followed by rent if it is due. Open your money tracker at any time to review the figures.", 26, 60, -220, 980, 280);
+        var body = Label(page, "JournalBodyText", "<b>TODAY'S NOTE</b>\n\nCheck your balance and upcoming commitments before ending the day.\n\nNext rent: $500 on 15 Sep.\nNext allowance: +$540 on 18 Sep.\n\n<b>AT THE END OF TODAY</b>\nFood: $20 without stored groceries.\nOther essentials: $10.\n\nLiving costs are paid first, followed by rent if it is due. Open your money tracker at any time to review the figures.", 26, 60, -220, 980, 280);
         var finance = Label(page, "JournalFinanceText", "Your balance, food supply and bill dates appear here.", 22, 60, -120, 980, 85);
         var options = new Button[3];
         for (int i = 0; i < options.Length; i++)

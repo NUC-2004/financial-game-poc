@@ -106,9 +106,9 @@ public partial class GameManager : MonoBehaviour
         DayNumber++; CurrentDate = CurrentDate.AddDays(1); AteTodaysMeal = false;
         if (CurrentDate.Date >= Payday.Date)
         {
-            economy.AddIncome(CurrentDate, rules.wages, "Regular part-time wages");
+            economy.AddIncome(CurrentDate, rules.wages, "Family allowance");
             WagesReceived++; SalaryReceived = true;
-            LastSettlement += $"\nWages arrived: +${rules.wages}.";
+            LastSettlement += $"\nFamily allowance arrived: +${rules.wages}.";
             Payday = Payday.AddDays(rules.payInterval);
         }
         SettleEventPayments(); PrepareDayEvent(); StateChanged?.Invoke();
@@ -121,7 +121,7 @@ public partial class GameManager : MonoBehaviour
     private string BuildReview()
     {
         int shifts = 0, recovery = 0;
-        foreach (var d in decisions) { if (d.IsWork) shifts++; if (d.MoodChange > 0) recovery++; }
+        foreach (var d in decisions) { if (d.IsWork) shifts++; if (d.IsRecovery) recovery++; }
         string review = $"Your plan: {shifts} extra jobs; {recovery} recovery choices.";
         int pending = 0; foreach (var p in pendingPayments) pending += p.Amount;
         if (pending > 0) review += $"\n${pending} is still pending. It was never included in your spendable balance.";

@@ -8151,6 +8151,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     - label: Small shop
       result: Two days of meals. The rest is a future-you problem.
@@ -8160,6 +8161,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     - label: Keep the cash
       result: No groceries added. Empty shelves do not cancel daily food costs.
@@ -8169,6 +8171,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     tipKey: unit
   - day: 2
@@ -8187,6 +8190,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 1
     - label: Carry $40 cash
       result: 'Trip limit: $40. Cash still spends remarkably well.'
@@ -8196,6 +8200,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 2
     - label: Use your debit card
       result: No separate trip limit. You still choose every purchase.
@@ -8205,6 +8210,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 3
     tipKey: cash
   - day: 3
@@ -8217,19 +8223,21 @@ MonoBehaviour:
       result: Paid today. Your feet would also like compensation.
       cost: 0
       foodDays: 0
-      income: 80
+      income: 90
       delayDays: 0
-      mood: -10
+      mood: -12
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take the longer shift
       result: Payment is confirmed. Unfortunately, confirmed is not cash.
       cost: 0
       foodDays: 0
-      income: 140
+      income: 160
       delayDays: 3
-      mood: -18
+      mood: -24
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take a free afternoon
       result: You sit down. Nothing asks for your card details.
@@ -8237,8 +8245,9 @@ MonoBehaviour:
       foodDays: 0
       income: 0
       delayDays: 0
-      mood: 12
+      mood: 8
       isWork: 0
+      isRecovery: 1
       action: 0
     tipKey: 
   - day: 4
@@ -8257,6 +8266,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 4
     - label: Go straight to the shop
       result: You head out hungry. Check the basket before paying.
@@ -8266,6 +8276,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 5
     - label: Stay home today
       result: No shopping. Normal meal settlement still applies tonight.
@@ -8275,6 +8286,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     tipKey: hunger
   - day: 6
@@ -8293,6 +8305,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 10
     - label: Plan to keep $40 now
       result: A $40 target is noted. This is not a transfer or a spending lock.
@@ -8302,6 +8315,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 13
     - label: Keep the goal, no reminder
       result: Goal noted. You can review it on Day 24.
@@ -8311,6 +8325,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 11
     tipKey: reminder
   - day: 7
@@ -8322,19 +8337,21 @@ MonoBehaviour:
       result: Paid today. Your feet would also like compensation.
       cost: 0
       foodDays: 0
-      income: 80
+      income: 90
       delayDays: 0
-      mood: -10
+      mood: -12
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take the longer shift
       result: Payment is confirmed. Unfortunately, confirmed is not cash.
       cost: 0
       foodDays: 0
-      income: 140
+      income: 160
       delayDays: 3
-      mood: -18
+      mood: -24
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take a free afternoon
       result: You sit down. Nothing asks for your card details.
@@ -8342,8 +8359,9 @@ MonoBehaviour:
       foodDays: 0
       income: 0
       delayDays: 0
-      mood: 12
+      mood: 8
       isWork: 0
+      isRecovery: 1
       action: 0
     tipKey: 
   - day: 8
@@ -8356,12 +8374,13 @@ MonoBehaviour:
     choices:
     - label: Batch-cook
       result: Meals sorted. Washing up has filed an appeal.
-      cost: 64
-      foodDays: 4
+      cost: 90
+      foodDays: 6
       income: 0
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     - label: Small shop
       result: Two days of meals. The rest is a future-you problem.
@@ -8371,6 +8390,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     - label: Keep the cash
       result: No groceries added. Empty shelves do not cancel daily food costs.
@@ -8380,6 +8400,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     tipKey: unit
   - day: 9
@@ -8398,6 +8419,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 4
       isWork: 0
+      isRecovery: 0
       action: 9
     - label: Save to wishlist
       result: No purchase. Tomorrow you can reconsider without a countdown.
@@ -8407,6 +8429,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 8
     - label: Keep the pair you have
       result: No purchase. The timer will recover.
@@ -8416,6 +8439,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     tipKey: pause
   - day: 10
@@ -8428,19 +8452,21 @@ MonoBehaviour:
       result: Paid today. Your feet would also like compensation.
       cost: 0
       foodDays: 0
-      income: 80
+      income: 90
       delayDays: 0
-      mood: -10
+      mood: -12
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take the longer shift
       result: Payment is confirmed. Unfortunately, confirmed is not cash.
       cost: 0
       foodDays: 0
-      income: 140
+      income: 160
       delayDays: 3
-      mood: -18
+      mood: -24
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take a free afternoon
       result: You sit down. Nothing asks for your card details.
@@ -8448,8 +8474,9 @@ MonoBehaviour:
       foodDays: 0
       income: 0
       delayDays: 0
-      mood: 12
+      mood: 8
       isWork: 0
+      isRecovery: 1
       action: 0
     tipKey: 
   - day: 12
@@ -8467,8 +8494,9 @@ MonoBehaviour:
       foodDays: 1
       income: 0
       delayDays: 0
-      mood: 24
+      mood: 30
       isWork: 0
+      isRecovery: 1
       action: 0
     - label: Bring a dish
       result: Pasta in, leftovers out. A rare successful group project.
@@ -8476,8 +8504,9 @@ MonoBehaviour:
       foodDays: 2
       income: 0
       delayDays: 0
-      mood: 12
+      mood: 16
       isWork: 0
+      isRecovery: 1
       action: 0
     - label: Call, then rest at home
       result: You catch up by phone. Friendship survives the lack of a booking fee.
@@ -8485,8 +8514,9 @@ MonoBehaviour:
       foodDays: 0
       income: 0
       delayDays: 0
-      mood: 6
+      mood: 5
       isWork: 0
+      isRecovery: 1
       action: 0
     tipKey: 
   - day: 15
@@ -8505,6 +8535,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 7
     - label: Check the fridge only
       result: You checked the stock. Work out the missing days before buying.
@@ -8514,6 +8545,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 6
     - label: Head straight to the shop
       result: The fridge is still available from the room if you want to check.
@@ -8523,30 +8555,33 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     tipKey: list
   - day: 17
     id: work_17
-    title: PAYDAY IS NOT TODAY
+    title: THE PAYMENT TAKES ITS TIME
     body: The events team needs help. Their payment system believes in suspense.
     choices:
     - label: Take the quick job
       result: Paid today. Your feet would also like compensation.
       cost: 0
       foodDays: 0
-      income: 80
+      income: 90
       delayDays: 0
-      mood: -10
+      mood: -12
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take the longer shift
       result: Payment is confirmed. Unfortunately, confirmed is not cash.
       cost: 0
       foodDays: 0
-      income: 140
+      income: 160
       delayDays: 3
-      mood: -18
+      mood: -24
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take a free afternoon
       result: You sit down. Nothing asks for your card details.
@@ -8554,8 +8589,9 @@ MonoBehaviour:
       foodDays: 0
       income: 0
       delayDays: 0
-      mood: 12
+      mood: 8
       isWork: 0
+      isRecovery: 1
       action: 0
     tipKey: 
   - day: 21
@@ -8567,19 +8603,21 @@ MonoBehaviour:
       result: Paid today. Your feet would also like compensation.
       cost: 0
       foodDays: 0
-      income: 80
+      income: 90
       delayDays: 0
-      mood: -10
+      mood: -12
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take the longer shift
       result: Payment is confirmed. Unfortunately, confirmed is not cash.
       cost: 0
       foodDays: 0
-      income: 140
+      income: 160
       delayDays: 3
-      mood: -18
+      mood: -24
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take a free afternoon
       result: You sit down. Nothing asks for your card details.
@@ -8587,8 +8625,9 @@ MonoBehaviour:
       foodDays: 0
       income: 0
       delayDays: 0
-      mood: 12
+      mood: 8
       isWork: 0
+      isRecovery: 1
       action: 0
     tipKey: 
   - day: 23
@@ -8607,6 +8646,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     - label: Small shop
       result: Two days of meals. The rest is a future-you problem.
@@ -8616,6 +8656,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     - label: Keep the cash
       result: No groceries added. Empty shelves do not cancel daily food costs.
@@ -8625,6 +8666,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 0
     tipKey: unit
   - day: 24
@@ -8643,6 +8685,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 13
     - label: Plan to keep $20
       result: A smaller target. Your bills still need their own budget.
@@ -8652,6 +8695,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 12
     - label: Keep funds unallocated
       result: No buffer earmarked. No money has moved.
@@ -8661,6 +8705,7 @@ MonoBehaviour:
       delayDays: 0
       mood: 0
       isWork: 0
+      isRecovery: 0
       action: 14
     tipKey: reminder
   - day: 25
@@ -8679,8 +8724,9 @@ MonoBehaviour:
       foodDays: 1
       income: 0
       delayDays: 0
-      mood: 24
+      mood: 30
       isWork: 0
+      isRecovery: 1
       action: 0
     - label: Shared lunch at home
       result: Everyone brought something. Someone even brought a container back.
@@ -8688,8 +8734,9 @@ MonoBehaviour:
       foodDays: 2
       income: 0
       delayDays: 0
-      mood: 12
+      mood: 16
       isWork: 0
+      isRecovery: 1
       action: 0
     - label: Free walk and a chat
       result: Fresh air remains free. Management is investigating.
@@ -8697,8 +8744,9 @@ MonoBehaviour:
       foodDays: 0
       income: 0
       delayDays: 0
-      mood: 6
+      mood: 5
       isWork: 0
+      isRecovery: 1
       action: 0
     tipKey: 
   - day: 27
@@ -8710,19 +8758,21 @@ MonoBehaviour:
       result: Paid today. Your feet would also like compensation.
       cost: 0
       foodDays: 0
-      income: 80
+      income: 90
       delayDays: 0
-      mood: -10
+      mood: -12
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take the longer shift
       result: Payment is confirmed. Unfortunately, confirmed is not cash.
       cost: 0
       foodDays: 0
-      income: 140
+      income: 160
       delayDays: 3
-      mood: -18
+      mood: -24
       isWork: 1
+      isRecovery: 0
       action: 0
     - label: Take a free afternoon
       result: You sit down. Nothing asks for your card details.
@@ -8730,10 +8780,12 @@ MonoBehaviour:
       foodDays: 0
       income: 0
       delayDays: 0
-      mood: 12
+      mood: 8
       isWork: 0
+      isRecovery: 1
       action: 0
     tipKey: 
+  balanceRevision: 1
 --- !u!114 &664201565
 MonoBehaviour:
   m_ObjectHideFlags: 0

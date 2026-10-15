@@ -38,7 +38,7 @@ public static class RoomValidation
                 else g.EndDay();
             }
             Check(g.TryChooseEvent(g.CurrentEvent.Id, 1), "Accept delayed job");
-            Check(room.Entries(start.AddDays(5)).Any(e => e.Contains("Confirmed income +$140")), "Confirmed income visible after choice");
+            Check(room.Entries(start.AddDays(5)).Any(e => e.Contains("Confirmed income +$160")), "Confirmed income visible after choice");
             Debug.Log("CALENDAR_APPOINTMENTS_PASSED: known dates retained; future encounters hidden; personal reminders and confirmed income visible.");
         }
         finally { UnityEngine.Object.DestroyImmediate(holder); }

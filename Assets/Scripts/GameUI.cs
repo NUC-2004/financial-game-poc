@@ -136,7 +136,7 @@ public class GameUI : MonoBehaviour
     private void RefreshLedger()
     {
         bool due = game.CurrentDate.Date == game.NextRentDate.Date;
-        string pay = $"{ShortDate(game.Payday)} / Wages due: +${game.SalaryAmount}";
+        string pay = $"{ShortDate(game.Payday)} / Family allowance: +${game.SalaryAmount}";
         agendaText.text = "<b>AT A GLANCE</b>\n\n" +
             $"Rent ${game.RentCost}: {ShortDate(game.NextRentDate)}" + (due ? " / TODAY" : "") + "\n" + pay +
             $"\n\nTonight's living costs: ${game.LivingCostToday}\nStored food: {game.FoodDays} days\n\n" +
@@ -177,7 +177,7 @@ public class GameUI : MonoBehaviour
         journalFinanceText.text = $"CASH ${economy.Balance:N0} | MOOD {game.Mood.Value}/100 | FOOD {game.FoodDays} days | LIVING ${game.LivingCostToday}\n" +
             $"RENT ${game.RentCost}: {ShortDate(game.NextRentDate)}" +
             (game.CurrentDate.Date == game.NextRentDate.Date ? " (TODAY)" : "") +
-            $"  |  WAGES +${game.SalaryAmount}: {ShortDate(game.Payday)}";
+            $"  |  ALLOWANCE +${game.SalaryAmount}: {ShortDate(game.Payday)}";
         for (int i = 0; i < choiceButtons.Length; i++)
         {
             var button = choiceButtons[i];

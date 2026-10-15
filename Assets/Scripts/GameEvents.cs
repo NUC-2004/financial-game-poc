@@ -25,11 +25,12 @@ public partial class GameManager
         public int MoodAfter { get; }
         public int MoodChange => MoodAfter - MoodBefore;
         public bool IsWork { get; }
+        public bool IsRecovery { get; }
         public DecisionRecord(DateTime date, string title, string choice, string result,
-            int cashBefore, int cashAfter, int moodBefore, int moodAfter, bool isWork)
+            int cashBefore, int cashAfter, int moodBefore, int moodAfter, bool isWork, bool isRecovery)
         {
             Date = date; Title = title; Choice = choice; Result = result;
-            CashBefore = cashBefore; CashAfter = cashAfter; MoodBefore = moodBefore; MoodAfter = moodAfter; IsWork = isWork;
+            CashBefore = cashBefore; CashAfter = cashAfter; MoodBefore = moodBefore; MoodAfter = moodAfter; IsWork = isWork; IsRecovery = isRecovery;
         }
     }
     public sealed class EventPayment
@@ -106,12 +107,12 @@ public partial class GameManager
                 incomeInfo = $"\n+${c.income} due {ShortDate(due)}. Not spendable yet.";
             }
         }
-        mood.Apply(c.mood, c.isWork, DayNumber);
+        mood.Apply(c.mood, c.isWork, DayNumber, c.isRecovery);
         EventResolved = true;
         EventResult = c.result + $"\n\nCash: ${cashBefore} -> ${economy.Balance}. Mood: {moodBefore} -> {mood.Value}." +
             (c.foodDays > 0 ? $"\nFood: +{c.foodDays} days, usable tonight." : "") + incomeInfo;
         decisions.Add(new DecisionRecord(CurrentDate, CurrentEvent.Title, c.label, EventResult,
-            cashBefore, economy.Balance, moodBefore, mood.Value, c.isWork));
+            cashBefore, economy.Balance, moodBefore, mood.Value, c.isWork, c.isRecovery));
         LastTipKey = resolvedEvent.TipKey;
         if (!string.IsNullOrEmpty(LastTipKey)) Strategies.encountered.Add(LastTipKey);
         var followUp = Strategies.FollowUp(resolvedEvent.Id, c.action, DayNumber, FoodDays);

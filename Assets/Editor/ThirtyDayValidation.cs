@@ -79,7 +79,7 @@ public static class ThirtyDayValidation
             Check(g.FailureReason == "living", "Zero money fails essentials");
             g.Mood.ResetRun();
             Check(g.Mood.Apply(-18, true, 3) == -18 && g.Mood.Preview(-18, true, 7) == -24, "Repeat-work penalty");
-            g.Mood.Apply(12, false, 5);
+            g.Mood.Apply(12, false, 5, true);
             Check(g.Mood.Preview(-18, true, 7) == -18, "Recovery clears penalty");
             Check(g.Mood.Apply(100, false, 8) <= 100 && g.Mood.Value == 100, "Mood capped");
             Debug.Log("THIRTY_DAY_VALIDATION_PASSED\n" + string.Join("\n", stats));

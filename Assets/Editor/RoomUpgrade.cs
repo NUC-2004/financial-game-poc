@@ -25,6 +25,19 @@ public static class RoomUpgrade
         // One-time migration. Re-running UI installation preserves edited event data.
         if (!schedule.events.Exists(e => e.id == "market_prep"))
         { Undo.RecordObject(schedule, "Add strategy events"); schedule.events = StrategySystem.CreateSchedule(); EditorUtility.SetDirty(schedule); }
+        if (schedule.balanceRevision < 1)
+        {
+            Undo.RecordObject(schedule, "Update work and recovery choices");
+            foreach (var source in GameEventSchedule.Defaults())
+            {
+                if (!source.id.StartsWith("work_") && source.id != "shop_8" && source.id != "birthday" && source.id != "recharge") continue;
+                var target = schedule.events.Find(e => e.id == source.id);
+                if (target == null) continue;
+                target.choices = source.choices;
+                if (source.id == "work_17") target.title = source.title;
+            }
+            schedule.balanceRevision = 1; EditorUtility.SetDirty(schedule);
+        }
         var ui = UnityEngine.Object.FindFirstObjectByType<GameUI>();
         var room = ui.GetComponent<RoomInterface>() ?? Undo.AddComponent<RoomInterface>(ui.gameObject);
         Undo.RegisterFullObjectHierarchyUndo(ui.gameObject, "Install illustrated room");

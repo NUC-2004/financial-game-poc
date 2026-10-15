@@ -23,13 +23,13 @@ public sealed class MoodSystem : MonoBehaviour
         int penalty = isWork && day - LastWorkDay <= repeatWorkWindow ? repeatWorkPenalty : 0;
         return Mathf.Clamp(Value + baseChange - penalty, 0, 100) - Value;
     }
-    public int Apply(int baseChange, bool isWork, int day)
+    public int Apply(int baseChange, bool isWork, int day, bool isRecovery = false)
     {
         int change = Preview(baseChange, isWork, day);
         Value += change;
         Lowest = Mathf.Min(Lowest, Value);
         if (isWork) LastWorkDay = day;
-        else if (baseChange > 0) LastWorkDay = -10000; // Recovery breaks the extra-work streak.
+        else if (isRecovery) LastWorkDay = -10000;
         return change;
     }
 }
